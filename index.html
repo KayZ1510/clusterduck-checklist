@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Clusterduck Tracker — Ducks & Parts</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Theme Configuration -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f4e225",
+                        "primary-dark": "#e0cf20",
+                        "accent-orange": "#FFB347",
+                        "background-light": "#f8f8f5",
+                        "background-dark": "#222110",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#2d2c20",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"],
+                        "body": ["Spline Sans", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "1.5rem",
+                        "xl": "2rem",
+                        "2xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Spline Sans', sans-serif;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* simple line clamp */
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col transition-colors duration-200">
+
+    <!-- Sticky Navigation -->
+    <header
+        class="sticky top-0 z-50 bg-surface-light/90 dark:bg-surface-dark/90 backdrop-blur-md border-b border-[#e6e5db] dark:border-[#3a392a]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20 gap-4">
+                <!-- Logo -->
+                <div class="flex items-center gap-3 shrink-0">
+                    <div
+                        class="size-10 bg-primary rounded-xl flex items-center justify-center text-background-dark transform -rotate-3 hover:rotate-0 transition-transform shadow-sm">
+                        <span class="material-symbols-outlined text-3xl">cruelty_free</span>
+                    </div>
+                    <div class="hidden md:block">
+                        <h1 class="text-background-dark dark:text-white text-xl font-bold leading-none tracking-tight">
+                            Clusterduck</h1>
+                        <p class="text-[#8a8760] text-xs font-medium tracking-wide uppercase">Ducks & Parts</p>
+                    </div>
+                </div>
+
+                <!-- Search -->
+                <div class="flex-1 max-w-lg mx-auto">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <span class="material-symbols-outlined text-[#8a8760]">search</span>
+                        </div>
+                        <input id="searchInput"
+                            class="block w-full pl-11 pr-4 py-3 bg-[#f0f0eb] dark:bg-[#38372b] border-none rounded-full text-background-dark dark:text-white placeholder-[#8a8760] focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-[#38372b] transition-all shadow-inner"
+                            placeholder="Search ducks / sets (e.g. 'Halloween', 'Duck #12')..." type="text" />
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center gap-2 shrink-0">
+                    <button id="btnAddDuck"
+                        class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-background-dark font-bold shadow-sm hover:bg-primary-dark transition-colors">
+                        <span class="material-symbols-outlined">pets</span> Create Duck
+                    </button>
+
+                    <button id="btnExport"
+                        class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold shadow-sm transition-colors">
+                        <span class="material-symbols-outlined">download</span> Export
+                    </button>
+
+                    <label
+                        class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold shadow-sm transition-colors cursor-pointer">
+                        <span class="material-symbols-outlined">upload</span> Import
+                        <input id="fileImport" type="file" accept="application/json" class="hidden" />
+                    </label>
+
+                    <button id="btnTheme"
+                        class="p-2 text-[#8a8760] hover:text-background-dark dark:hover:text-primary transition-colors"
+                        title="Toggle theme">
+                        <span class="material-symbols-outlined">dark_mode</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Overview -->
+        <section
+            class="mb-8 bg-surface-light dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-[#e6e5db] dark:border-[#3a392a]">
+            <div class="flex flex-col md:flex-row gap-6 items-center justify-between">
+                <div class="flex-1 w-full">
+                    <div class="flex justify-between items-end mb-3">
+                        <div>
+                            <h2 class="text-2xl font-bold text-background-dark dark:text-white">Duck Collection</h2>
+                            <p id="hintText" class="text-[#8a8760] text-sm mt-1">
+                                Create ducks and track their default parts: <b>Head</b>, <b>Wings</b>, <b>Tail</b>
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <span id="duckCountBig"
+                                class="text-3xl font-bold text-background-dark dark:text-primary">0</span>
+                            <span class="text-lg text-[#8a8760] font-medium">ducks</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <button id="btnQuickAddDuck"
+                            class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-background-dark font-bold hover:bg-primary-dark transition-colors">
+                            <span class="material-symbols-outlined">pets</span> Create Duck
+                        </button>
+                        <button id="btnResetAll"
+                            class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-surface-dark border border-[#e6e5db] dark:border-[#3a392a] text-[#8a8760] font-bold hover:text-red-500 transition-colors">
+                            <span class="material-symbols-outlined">delete_forever</span> Reset data
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 shrink-0">
+                    <div
+                        class="flex flex-col items-center justify-center bg-[#f0f0eb] dark:bg-[#38372b] rounded-xl p-4 min-w-[120px]">
+                        <span class="material-symbols-outlined text-primary mb-1">category</span>
+                        <span id="setCountBig" class="font-bold text-background-dark dark:text-white text-lg">0</span>
+                        <span class="text-xs text-[#8a8760] uppercase font-bold tracking-wider">Sets</span>
+                    </div>
+                    <div
+                        class="flex flex-col items-center justify-center bg-[#f0f0eb] dark:bg-[#38372b] rounded-xl p-4 min-w-[120px]">
+                        <span class="material-symbols-outlined text-accent-orange mb-1">done_all</span>
+                        <span id="partsProgressBig"
+                            class="font-bold text-background-dark dark:text-white text-lg">0/0</span>
+                        <span class="text-xs text-[#8a8760] uppercase font-bold tracking-wider">Parts</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filters -->
+        <section
+            class="sticky top-20 z-40 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm py-2 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div
+                class="flex flex-col md:flex-row gap-3 justify-between items-start md:items-center border-b border-[#e6e5db] dark:border-[#3a392a] pb-4">
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex p-1 bg-[#e6e5db] dark:bg-[#38372b] rounded-full">
+                        <button id="tabAllDucks"
+                            class="px-6 py-2 rounded-full bg-white dark:bg-surface-dark shadow-sm text-background-dark dark:text-white font-bold text-sm transition-all transform hover:scale-105">
+                            All Ducks
+                        </button>
+                        <button id="tabBySet"
+                            class="px-6 py-2 rounded-full text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold text-sm transition-colors">
+                            By Set
+                        </button>
+                    </div>
+
+                    <select id="setFilter"
+                        class="w-full sm:w-[260px] px-4 py-2 bg-white dark:bg-surface-dark border border-[#e6e5db] dark:border-[#3a392a] rounded-full text-background-dark dark:text-white focus:ring-2 focus:ring-primary">
+                        <option value="">All Sets</option>
+                    </select>
+
+                    <label
+                        class="flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-surface-dark border border-[#e6e5db] dark:border-[#3a392a] text-sm font-bold text-[#8a8760] dark:text-gray-200">
+                        <input id="onlyUnassigned" type="checkbox" class="rounded text-primary focus:ring-primary" />
+                        Only unassigned ducks
+                    </label>
+                </div>
+
+                <div class="text-xs text-[#8a8760]">
+                    Stored locally in your browser (localStorage).
+                </div>
+            </div>
+        </section>
+
+        <!-- Content -->
+        <section class="space-y-6">
+            <div id="emptyState"
+                class="hidden bg-surface-light dark:bg-surface-dark rounded-2xl p-10 border border-[#e6e5db] dark:border-[#3a392a] text-center">
+                <div class="flex flex-col items-center gap-3">
+                    <span class="material-symbols-outlined text-5xl text-[#8a8760]">pets</span>
+                    <h4 class="text-xl font-bold text-background-dark dark:text-white">No ducks yet</h4>
+                    <p class="text-[#8a8760] text-sm max-w-md">Bấm “Create Duck”, chọn set, sau đó tick Head/Wings/Tail
+                        đã thu thập.</p>
+                    <div class="flex flex-wrap gap-2 justify-center mt-2">
+                        <button id="btnEmptyAddDuck"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-background-dark font-bold shadow-sm hover:bg-primary-dark transition-colors">
+                            <span class="material-symbols-outlined">pets</span> Create Duck
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- All ducks list -->
+            <div id="duckListView" class="space-y-3"></div>
+
+            <!-- Set grid -->
+            <div id="setGrid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- Mobile FAB -->
+        <button id="fab"
+            class="fixed bottom-6 right-6 sm:hidden size-14 rounded-full bg-primary text-background-dark shadow-lg flex items-center justify-center z-50 hover:bg-primary-dark transition-colors"
+            title="Quick Actions">
+            <span class="material-symbols-outlined text-3xl">add</span>
+        </button>
+    </main>
+
+    <footer class="mt-12 border-t border-[#e6e5db] dark:border-[#3a392a] py-8 bg-surface-light dark:bg-surface-dark">
+        <div
+            class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-4">
+            <div>
+                <h2 class="text-[#181711] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">
+                    Clusterduck Tracker</h2>
+                <p class="text-[#8a8760] text-sm">Tạo duck + tick bộ phận đã thu thập (Head/Wings/Tail).</p>
+            </div>
+            <div class="flex gap-4">
+                <button id="btnResetAllFooter"
+                    class="text-[#8a8760] hover:text-red-500 transition-colors text-sm font-medium">Reset data</button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Backdrop -->
+    <div id="backdrop" class="hidden fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm"></div>
+
+    <!-- Modal: Quick Actions (mobile) -->
+    <div id="modalQuick" class="hidden fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-4">
+        <div
+            class="w-full max-w-md bg-surface-light dark:bg-surface-dark rounded-2xl border border-[#e6e5db] dark:border-[#3a392a] shadow-xl overflow-hidden">
+            <div class="p-5 border-b border-[#e6e5db] dark:border-[#3a392a] flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-background-dark dark:text-white">Quick Actions</h3>
+                    <p class="text-xs text-[#8a8760]">Quick create / import / export</p>
+                </div>
+                <button data-close class="p-2 rounded-full hover:bg-[#f0f0eb] dark:hover:bg-[#38372b] transition-colors"
+                    title="Close">
+                    <span class="material-symbols-outlined text-[#8a8760]">close</span>
+                </button>
+            </div>
+            <div class="p-5 space-y-3">
+                <button id="qaAddDuck"
+                    class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-primary text-background-dark font-bold hover:bg-primary-dark transition-colors">
+                    <span class="material-symbols-outlined">pets</span> Create Duck
+                </button>
+                <button id="qaExport"
+                    class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] font-bold hover:text-background-dark dark:hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined">download</span> Export
+                </button>
+                <label
+                    class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] font-bold hover:text-background-dark dark:hover:text-primary transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined">upload</span> Import
+                    <input id="fileImportMobile" type="file" accept="application/json" class="hidden" />
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Duck -->
+    <div id="modalDuck" class="hidden fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-4">
+        <div
+            class="w-full max-w-xl bg-surface-light dark:bg-surface-dark rounded-2xl border border-[#e6e5db] dark:border-[#3a392a] shadow-xl overflow-hidden">
+            <div class="p-6 border-b border-[#e6e5db] dark:border-[#3a392a] flex items-center justify-between">
+                <div>
+                    <h3 id="duckModalTitle" class="text-xl font-bold text-background-dark dark:text-white">Create Duck
+                    </h3>
+                    <p class="text-sm text-[#8a8760]">Tick which default parts you've collected for this duck.</p>
+                </div>
+                <button data-close class="p-2 rounded-full hover:bg-[#f0f0eb] dark:hover:bg-[#38372b] transition-colors"
+                    title="Close">
+                    <span class="material-symbols-outlined text-[#8a8760]">close</span>
+                </button>
+            </div>
+
+            <form id="duckForm" class="p-6 space-y-5">
+                <input type="hidden" id="duckId" />
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-bold text-[#8a8760] mb-1">Duck name</label>
+                        <input id="duckName" required
+                            class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#38372b] border border-[#e6e5db] dark:border-[#3a392a] text-background-dark dark:text-white focus:ring-2 focus:ring-primary"
+                            placeholder="vd: Duck #1 / Captain Quack / ..." />
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-bold text-[#8a8760] mb-1">Set</label>
+                        <select id="duckSetId"
+                            class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#38372b] border border-[#e6e5db] dark:border-[#3a392a] text-background-dark dark:text-white focus:ring-2 focus:ring-primary">
+                            <option value="">(None)</option>
+                        </select>
+                        <p class="text-xs text-[#8a8760] mt-1">You can leave it blank if you're not sure yet (edit
+                            later).</p>
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-bold text-[#8a8760] mb-2">Collected parts</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <label
+                                class="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white dark:bg-[#38372b] border border-[#e6e5db] dark:border-[#3a392a] font-bold text-[#8a8760] dark:text-gray-200 cursor-pointer">
+                                <input id="partHead" type="checkbox" class="rounded text-primary focus:ring-primary" />
+                                <span class="material-symbols-outlined text-accent-orange">face</span>
+                                Head
+                            </label>
+                            <label
+                                class="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white dark:bg-[#38372b] border border-[#e6e5db] dark:border-[#3a392a] font-bold text-[#8a8760] dark:text-gray-200 cursor-pointer">
+                                <input id="partWing" type="checkbox" class="rounded text-primary focus:ring-primary" />
+                                <span class="material-symbols-outlined text-accent-orange">flutter_dash</span>
+                                Wings
+                            </label>
+                            <label
+                                class="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white dark:bg-[#38372b] border border-[#e6e5db] dark:border-[#3a392a] font-bold text-[#8a8760] dark:text-gray-200 cursor-pointer">
+                                <input id="partTail" type="checkbox" class="rounded text-primary focus:ring-primary" />
+                                <span class="material-symbols-outlined text-accent-orange">sweep</span>
+                                Tail
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-bold text-[#8a8760] mb-1">Notes (optional)</label>
+                        <textarea id="duckNotes" rows="3"
+                            class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#38372b] border border-[#e6e5db] dark:border-[#3a392a] text-background-dark dark:text-white focus:ring-2 focus:ring-primary"
+                            placeholder="Optional notes..."></textarea>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-2">
+                    <button id="btnDeleteDuck" type="button"
+                        class="hidden items-center gap-2 px-4 py-2 rounded-full border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-bold">
+                        <span class="material-symbols-outlined">delete</span> Delete
+                    </button>
+
+                    <div class="flex gap-2 ml-auto">
+                        <button type="button" data-close
+                            class="px-5 py-2 rounded-full bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold transition-colors">Cancel</button>
+                        <button type="submit"
+                            class="px-5 py-2 rounded-full bg-primary text-background-dark font-bold shadow-sm hover:bg-primary-dark transition-colors">Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        /********************
+         * Preset sets (your list)
+         ********************/
+        const PRESET_SET_NAMES = [
+            "Ducky Ducks",
+            "Neighborhood",
+            "Duck Dimension",
+            "Horrors",
+            "Duck Ages",
+            "Pirates vs Ninjas",
+            "Wrong Species",
+            "Myths & Legends",
+            "Dark Wings",
+            "Professionals",
+            "Wholesome",
+            "Lunars",
+            "Fabled Spirits",
+            "Stragglers",
+            "Halloween",
+            "Thanksgiving",
+            "The Carolers",
+            "The Lovebirds",
+            "Mutant Henshin!",
+            "Americanard",
+            "Duckathlon",
+            "Quackamole",
+            "Diwali Dhamaka"
+        ];
+
+        const PARTS = [
+            { key: "head", label: "Head", icon: "face" },
+            { key: "wing", label: "Wings", icon: "flutter_dash" },
+            { key: "tail", label: "Tail", icon: "sweep" }
+        ];
+
+        /********************
+         * Storage keys
+         ********************/
+        const K_SETS = "clusterduck_sets_preset_v1";          // sets list (preset + maybe from import)
+        const K_DUCKS = "clusterduck_ducks_with_parts_v1";    // ducks with parts status
+        const K_THEME = "clusterduck_theme_v1";
+
+        const state = {
+            sets: [],   // {id, name, createdAt}
+            ducks: [],  // {id, name, setId, notes, parts:{head,wing,tail}, createdAt, updatedAt}
+            view: "ducks", // ducks | set
+            filterSetId: "",
+            onlyUnassigned: false,
+            search: ""
+        };
+
+        const $ = (id) => document.getElementById(id);
+
+        function uid() { return crypto?.randomUUID?.() ?? (Date.now() + "_" + Math.random().toString(16).slice(2)); }
+        function safeText(s) { return (s ?? "").toString(); }
+        function normalize(s) { return safeText(s).trim().toLowerCase(); }
+        function escapeHTML(s) {
+            return safeText(s)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#39;");
+        }
+
+        function load(key, fallback) {
+            const raw = localStorage.getItem(key);
+            if (!raw) return fallback;
+            try { return JSON.parse(raw); } catch { return fallback; }
+        }
+        function save(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+
+        function loadTheme() { return localStorage.getItem(K_THEME); }
+        function saveTheme(v) { localStorage.setItem(K_THEME, v); }
+        function applyTheme() {
+            const t = loadTheme();
+            if (t === "dark") document.documentElement.classList.add("dark");
+            else document.documentElement.classList.remove("dark");
+        }
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle("dark");
+            saveTheme(isDark ? "dark" : "light");
+        }
+
+        function ensurePresetSets() {
+            const existing = load(K_SETS, []);
+            if (Array.isArray(existing) && existing.length) return;
+
+            const now = Date.now();
+            const seeded = PRESET_SET_NAMES.map((name, idx) => ({
+                id: uid(),
+                name,
+                createdAt: now + idx
+            }));
+            save(K_SETS, seeded);
+        }
+
+        function setName(setId) {
+            if (!setId) return "(Unassigned set)";
+            return state.sets.find(s => s.id === setId)?.name ?? "(Unknown set)";
+        }
+
+        function matchesSearch(hay, q) {
+            if (!q) return true;
+            return normalize(hay).includes(q);
+        }
+
+        function refreshSetFilterOptions() {
+            const sel = $("setFilter");
+            sel.innerHTML =
+                `<option value="">All Sets</option>` +
+                state.sets.slice().sort((a, b) => a.name.localeCompare(b.name))
+                    .map(s => `<option value="${s.id}">${escapeHTML(s.name)}</option>`).join("");
+            sel.value = state.filterSetId;
+        }
+
+        function refreshDuckModalSetOptions(selectedId = "") {
+            const sel = $("duckSetId");
+            sel.innerHTML =
+                `<option value="">(None)</option>` +
+                state.sets.slice().sort((a, b) => a.name.localeCompare(b.name))
+                    .map(s => `<option value="${s.id}">${escapeHTML(s.name)}</option>`).join("");
+            sel.value = selectedId || state.filterSetId || "";
+        }
+
+        function normalizeDuckParts(parts) {
+            const p = parts && typeof parts === "object" ? parts : {};
+            return {
+                head: !!p.head,
+                wing: !!p.wing,
+                tail: !!p.tail
+            };
+        }
+
+        function calcDuckProgress(d) {
+            const p = normalizeDuckParts(d.parts);
+            const collected = (p.head ? 1 : 0) + (p.wing ? 1 : 0) + (p.tail ? 1 : 0);
+            return { collected, total: 3 };
+        }
+
+        function computeGlobalPartsProgress() {
+            const total = state.ducks.length * 3;
+            let collected = 0;
+            for (const d of state.ducks) {
+                const p = normalizeDuckParts(d.parts);
+                collected += (p.head ? 1 : 0) + (p.wing ? 1 : 0) + (p.tail ? 1 : 0);
+            }
+            return { collected, total };
+        }
+
+        function partChipHTML(duck, partKey, label, icon) {
+            const p = normalizeDuckParts(duck.parts);
+            const on = !!p[partKey];
+            const base = "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-colors";
+            const cls = on
+                ? `${base} bg-primary text-background-dark border-primary`
+                : `${base} bg-white/70 dark:bg-[#38372b]/70 text-[#8a8760] border-[#e6e5db] dark:border-[#3a392a] hover:border-primary`;
+            const symbol = on ? "check" : "add";
+            const title = on ? `Unmark: ${label}` : `Mark collected: ${label}`;
+            return `
+        <button data-action="togglePart" data-id="${duck.id}" data-part="${partKey}" class="${cls}" title="${title}">
+          <span class="material-symbols-outlined text-base">${icon}</span>
+          ${label}
+          <span class="material-symbols-outlined text-base ml-0.5">${symbol}</span>
+        </button>
+      `;
+        }
+
+        function duckCardHTML(d, showSetLine = true) {
+            const q = normalize(state.search);
+            if (q) {
+                const hay = `${d.name} ${d.notes} ${setName(d.setId)}`;
+                if (!matchesSearch(hay, q)) return "";
+            }
+
+            const { collected, total } = calcDuckProgress(d);
+
+            const chips = PARTS.map(pt => partChipHTML(d, pt.key, pt.label, pt.icon)).join("");
+
+            return `
+        <div class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-[#e6e5db] dark:border-[#3a392a] p-4 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-accent-orange">pets</span>
+                <div class="font-bold text-background-dark dark:text-white truncate">${escapeHTML(d.name)}</div>
+                <span class="ml-1 px-2 py-0.5 rounded-md bg-primary/20 text-[10px] font-bold text-background-dark dark:text-white uppercase tracking-wider">${collected}/${total}</span>
+              </div>
+              ${showSetLine ? `<div class="text-xs text-[#8a8760] mt-1 truncate">${escapeHTML(setName(d.setId))}</div>` : ``}
+              ${normalize(d.notes) ? `<div class="text-xs text-[#8a8760] mt-2 line-clamp-2">${escapeHTML(d.notes)}</div>` : ``}
+              
+              <div class="mt-3">
+                <div class="flex items-center justify-between text-[10px] font-bold text-[#8a8760] mb-1">
+                  <span>Parts</span>
+                  <span>${Math.round((collected / total) * 100)}%</span>
+                </div>
+                <div class="h-2 w-full bg-[#f0f0eb] dark:bg-[#38372b] rounded-full overflow-hidden">
+                  <div class="h-full bg-primary" style="width: ${Math.round((collected / total) * 100)}%;"></div>
+                </div>
+              </div>
+
+              <div class="mt-3 flex flex-wrap gap-2">
+                ${chips}
+              </div>
+            </div>
+            <div class="flex gap-2 shrink-0">
+              <button data-action="editDuck" data-id="${d.id}" class="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white/70 dark:bg-[#38372b]/70 border border-[#e6e5db] dark:border-[#3a392a] text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold transition-colors" title="Edit duck">
+                <span class="material-symbols-outlined">edit</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+        }
+
+        function setCardHTML(s) {
+            // list ducks in set (respect search, but we filter inside)
+            const ducksInSet = state.ducks
+                .filter(d => d.setId === s.id)
+                .slice()
+                .sort((a, b) => a.name.localeCompare(b.name));
+
+            // apply current filters
+            const q = normalize(state.search);
+            const visible = ducksInSet.filter(d => {
+                if (state.onlyUnassigned) return false;
+                if (state.filterSetId && s.id !== state.filterSetId) return false;
+                if (!q) return true;
+                const hay = `${d.name} ${d.notes} ${s.name}`;
+                return matchesSearch(hay, q);
+            });
+
+            // If there's a search: show set only if it matches or has a visible duck
+            if (q) {
+                const setMatches = matchesSearch(`${s.name}`, q);
+                if (!setMatches && visible.length === 0) return "";
+            }
+
+            const count = ducksInSet.length;
+
+            return `
+        <div class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-[#e6e5db] dark:border-[#3a392a] shadow-sm hover:shadow-lg transition-shadow p-5">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">category</span>
+                <h3 class="text-lg font-bold text-background-dark dark:text-white truncate">${escapeHTML(s.name)}</h3>
+              </div>
+              <div class="text-xs text-[#8a8760] mt-1">
+                <span class="font-bold">${count}</span> ducks
+              </div>
+            </div>
+
+            <div class="flex gap-2 shrink-0">
+              <button data-action="addDuckToSet" data-id="${s.id}" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-background-dark font-bold hover:bg-primary-dark transition-colors">
+                <span class="material-symbols-outlined">add</span> Duck
+              </button>
+            </div>
+          </div>
+
+          <details class="mt-4">
+            <summary class="cursor-pointer select-none text-sm font-bold text-[#8a8760] hover:text-background-dark dark:hover:text-primary transition-colors flex items-center gap-2">
+              <span class="material-symbols-outlined">expand_more</span>
+              View ducks in this set
+            </summary>
+            <div class="mt-3 space-y-3">
+              ${visible.length
+                    ? visible.map(d => duckCardHTML(d, false)).join("")
+                    : `<div class="bg-white/60 dark:bg-[#38372b]/60 border border-[#e6e5db] dark:border-[#3a392a] rounded-2xl p-4 text-sm text-[#8a8760]">
+                      ${count ? "No ducks in this set match your search." : "No ducks in this set yet. Click “Duck” to create one."}
+                     </div>`
+                }
+            </div>
+          </details>
+        </div>
+      `;
+        }
+
+        function getFilteredDucksFlat() {
+            const q = normalize(state.search);
+
+            return state.ducks
+                .filter(d => {
+                    if (state.filterSetId && d.setId !== state.filterSetId) return false;
+                    if (state.onlyUnassigned && !!d.setId) return false;
+
+                    if (q) {
+                        const hay = `${d.name} ${d.notes} ${setName(d.setId)}`;
+                        return matchesSearch(hay, q);
+                    }
+                    return true;
+                })
+                .slice()
+                .sort((a, b) => a.name.localeCompare(b.name));
+        }
+
+        function getFilteredSets() {
+            const q = normalize(state.search);
+
+            return state.sets
+                .filter(s => {
+                    if (state.filterSetId && s.id !== state.filterSetId) return false;
+                    if (state.onlyUnassigned) return false;
+
+                    if (q) {
+                        const ducksInSet = state.ducks.filter(d => d.setId === s.id);
+                        const setMatches = matchesSearch(s.name, q);
+                        const anyDuckMatches = ducksInSet.some(d => matchesSearch(`${d.name} ${d.notes}`, q));
+                        return setMatches || anyDuckMatches;
+                    }
+                    return true;
+                })
+                .slice()
+                .sort((a, b) => a.name.localeCompare(b.name));
+        }
+
+        function setTabActive(which) {
+            const ducks = $("tabAllDucks");
+            const sets = $("tabBySet");
+            const activeDucks = which === "ducks";
+
+            if (activeDucks) {
+                ducks.className = "px-6 py-2 rounded-full bg-white dark:bg-surface-dark shadow-sm text-background-dark dark:text-white font-bold text-sm transition-all transform hover:scale-105";
+                sets.className = "px-6 py-2 rounded-full text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold text-sm transition-colors";
+            } else {
+                sets.className = "px-6 py-2 rounded-full bg-white dark:bg-surface-dark shadow-sm text-background-dark dark:text-white font-bold text-sm transition-all transform hover:scale-105";
+                ducks.className = "px-6 py-2 rounded-full text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold text-sm transition-colors";
+            }
+        }
+
+        function render() {
+            refreshSetFilterOptions();
+
+            $("setCountBig").textContent = String(state.sets.length);
+            $("duckCountBig").textContent = String(state.ducks.length);
+
+            const gp = computeGlobalPartsProgress();
+            $("partsProgressBig").textContent = `${gp.collected}/${gp.total}`;
+
+            const showEmpty = state.ducks.length === 0;
+            $("emptyState").classList.toggle("hidden", !showEmpty);
+
+            setTabActive(state.view);
+
+            if (state.view === "ducks") {
+                $("setGrid").classList.add("hidden");
+                $("duckListView").classList.remove("hidden");
+
+                const ducks = getFilteredDucksFlat();
+                $("duckListView").innerHTML = ducks.length
+                    ? ducks.map(d => duckCardHTML(d, true)).join("")
+                    : `
+            <div class="bg-surface-light dark:bg-surface-dark rounded-2xl p-10 border border-[#e6e5db] dark:border-[#3a392a] text-center">
+              <div class="flex flex-col items-center gap-3">
+                <span class="material-symbols-outlined text-5xl text-[#8a8760]">pets</span>
+                <h4 class="text-xl font-bold text-background-dark dark:text-white">No ducks match your filters</h4>
+                <p class="text-[#8a8760] text-sm max-w-md">Try clearing the set/unassigned filters or your search.</p>
+              </div>
+            </div>
+          `;
+            } else {
+                $("duckListView").classList.add("hidden");
+                $("setGrid").classList.remove("hidden");
+
+                const sets = getFilteredSets();
+                const html = sets.map(setCardHTML).join("");
+                $("setGrid").innerHTML = html || `
+          <div class="col-span-full bg-surface-light dark:bg-surface-dark rounded-2xl p-10 border border-[#e6e5db] dark:border-[#3a392a] text-center">
+            <div class="flex flex-col items-center gap-3">
+              <span class="material-symbols-outlined text-5xl text-[#8a8760]">category</span>
+              <h4 class="text-xl font-bold text-background-dark dark:text-white">No sets match your filters</h4>
+              <p class="text-[#8a8760] text-sm max-w-md">Try clearing search or choose “All Sets”.</p>
+            </div>
+          </div>
+        `;
+            }
+        }
+
+        /********************
+         * CRUD Ducks
+         ********************/
+        function addDuck({ name, setId, notes, parts }) {
+            const now = Date.now();
+            state.ducks.unshift({
+                id: uid(),
+                name: name.trim(),
+                setId: setId || "",
+                notes: (notes || "").trim(),
+                parts: normalizeDuckParts(parts),
+                createdAt: now,
+                updatedAt: now
+            });
+            save(K_DUCKS, state.ducks);
+            render();
+        }
+
+        function updateDuck(id, patch) {
+            const idx = state.ducks.findIndex(d => d.id === id);
+            if (idx === -1) return;
+            const next = { ...state.ducks[idx], ...patch, updatedAt: Date.now() };
+            if (patch.parts) next.parts = normalizeDuckParts(patch.parts);
+            state.ducks[idx] = next;
+            save(K_DUCKS, state.ducks);
+            render();
+        }
+
+        function deleteDuck(id) {
+            state.ducks = state.ducks.filter(d => d.id !== id);
+            save(K_DUCKS, state.ducks);
+            render();
+        }
+
+        function toggleDuckPart(duckId, partKey) {
+            const d = state.ducks.find(x => x.id === duckId);
+            if (!d) return;
+            const p = normalizeDuckParts(d.parts);
+            p[partKey] = !p[partKey];
+            updateDuck(duckId, { parts: p });
+        }
+
+        /********************
+         * Modals
+         ********************/
+        function openBackdrop() { $("backdrop").classList.remove("hidden"); }
+        function closeBackdrop() { $("backdrop").classList.add("hidden"); }
+
+        function openModal(id) {
+            openBackdrop();
+            $(id).classList.remove("hidden");
+            document.body.style.overflow = "hidden";
+        }
+        function closeAllModals() {
+            closeBackdrop();
+            ["modalQuick", "modalDuck"].forEach(id => $(id).classList.add("hidden"));
+            document.body.style.overflow = "";
+        }
+
+        function openDuckModal(mode, duckObj = null, presetSetId = "") {
+            $("duckModalTitle").textContent = mode === "edit" ? "Edit Duck" : "Create Duck";
+            $("duckId").value = duckObj?.id ?? "";
+            $("duckName").value = duckObj?.name ?? "";
+            $("duckNotes").value = duckObj?.notes ?? "";
+
+            refreshDuckModalSetOptions(duckObj?.setId ?? presetSetId);
+
+            const parts = normalizeDuckParts(duckObj?.parts);
+            $("partHead").checked = parts.head;
+            $("partWing").checked = parts.wing;
+            $("partTail").checked = parts.tail;
+
+            $("btnDeleteDuck").classList.toggle("hidden", mode !== "edit");
+            openModal("modalDuck");
+            setTimeout(() => $("duckName").focus(), 50);
+        }
+
+        /********************
+         * Export / Import
+         ********************/
+        function exportJSON() {
+            const payload = {
+                version: 2,
+                exportedAt: new Date().toISOString(),
+                sets: state.sets,
+                ducks: state.ducks
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `clusterduck-ducks-parts-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function importJSONText(text) {
+            try {
+                const data = JSON.parse(text);
+                if (!data) throw new Error("Invalid JSON");
+
+                const sets = Array.isArray(data.sets)
+                    ? data.sets.map(s => ({ id: s.id ?? uid(), name: safeText(s.name ?? "Unnamed Set"), createdAt: Number(s.createdAt ?? Date.now()) }))
+                    : [];
+
+                const ducks = Array.isArray(data.ducks)
+                    ? data.ducks.map(d => ({
+                        id: d.id ?? uid(),
+                        name: safeText(d.name ?? "Unnamed Duck"),
+                        setId: safeText(d.setId ?? ""),
+                        notes: safeText(d.notes ?? ""),
+                        parts: normalizeDuckParts(d.parts),
+                        createdAt: Number(d.createdAt ?? Date.now()),
+                        updatedAt: Number(d.updatedAt ?? Date.now()),
+                    }))
+                    : [];
+
+                // If imported sets empty, keep presets
+                if (sets.length) {
+                    state.sets = sets;
+                    save(K_SETS, state.sets);
+                } else {
+                    // keep existing sets
+                }
+
+                state.ducks = ducks;
+                save(K_DUCKS, state.ducks);
+
+                // reset UI filters
+                state.search = "";
+                $("searchInput").value = "";
+                state.filterSetId = "";
+                $("setFilter").value = "";
+                state.onlyUnassigned = false;
+                $("onlyUnassigned").checked = false;
+
+                render();
+            } catch {
+                alert("Import failed: invalid JSON format.");
+            }
+        }
+
+        function importJSONFile(file) {
+            const reader = new FileReader();
+            reader.onload = () => importJSONText(reader.result);
+            reader.readAsText(file);
+        }
+
+        /********************
+         * Init / Events
+         ********************/
+        function init() {
+            applyTheme();
+            ensurePresetSets();
+
+            state.sets = load(K_SETS, []);
+            state.ducks = load(K_DUCKS, []).map(d => ({ ...d, parts: normalizeDuckParts(d.parts) }));
+
+            refreshSetFilterOptions();
+            render();
+
+            // Tabs
+            $("tabAllDucks").addEventListener("click", () => { state.view = "ducks"; render(); });
+            $("tabBySet").addEventListener("click", () => { state.view = "set"; render(); });
+
+            // Filters
+            $("setFilter").addEventListener("change", (e) => { state.filterSetId = e.target.value; render(); });
+            $("onlyUnassigned").addEventListener("change", (e) => { state.onlyUnassigned = e.target.checked; render(); });
+
+            // Search
+            $("searchInput").addEventListener("input", (e) => { state.search = e.target.value; render(); });
+
+            // Theme
+            $("btnTheme").addEventListener("click", toggleTheme);
+
+            // Quick add
+            $("btnAddDuck").addEventListener("click", () => openDuckModal("create"));
+            $("btnQuickAddDuck").addEventListener("click", () => openDuckModal("create"));
+            $("btnEmptyAddDuck").addEventListener("click", () => openDuckModal("create"));
+
+            // Mobile FAB
+            $("fab").addEventListener("click", () => openModal("modalQuick"));
+            $("qaAddDuck").addEventListener("click", () => { closeAllModals(); openDuckModal("create"); });
+            $("qaExport").addEventListener("click", () => exportJSON());
+
+            // Export / Import
+            $("btnExport").addEventListener("click", exportJSON);
+            $("fileImport").addEventListener("change", (e) => {
+                const f = e.target.files?.[0];
+                if (f) importJSONFile(f);
+                e.target.value = "";
+            });
+            $("fileImportMobile").addEventListener("change", (e) => {
+                const f = e.target.files?.[0];
+                if (f) importJSONFile(f);
+                e.target.value = "";
+            });
+
+            // Reset
+            function doReset() {
+                if (!confirm("Reset all duck data? (Preset sets will be kept)")) return;
+                localStorage.removeItem(K_DUCKS);
+                state.ducks = [];
+                save(K_DUCKS, []);
+                state.search = "";
+                $("searchInput").value = "";
+                state.filterSetId = "";
+                $("setFilter").value = "";
+                state.onlyUnassigned = false;
+                $("onlyUnassigned").checked = false;
+                state.view = "ducks";
+                render();
+            }
+            $("btnResetAll").addEventListener("click", doReset);
+            $("btnResetAllFooter").addEventListener("click", doReset);
+
+            // Modal close
+            document.addEventListener("click", (e) => {
+                const btn = e.target.closest("[data-close]");
+                if (btn) closeAllModals();
+            });
+            $("backdrop").addEventListener("click", closeAllModals);
+            document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAllModals(); });
+
+            // Duck form submit
+            $("duckForm").addEventListener("submit", (e) => {
+                e.preventDefault();
+                const id = $("duckId").value;
+                const name = $("duckName").value.trim();
+                const setId = $("duckSetId").value;
+                const notes = $("duckNotes").value.trim();
+
+                if (!name) return;
+
+                const parts = {
+                    head: $("partHead").checked,
+                    wing: $("partWing").checked,
+                    tail: $("partTail").checked
+                };
+
+                if (id) updateDuck(id, { name, setId, notes, parts });
+                else addDuck({ name, setId, notes, parts });
+
+                closeAllModals();
+            });
+
+            // Delete duck
+            $("btnDeleteDuck").addEventListener("click", () => {
+                const id = $("duckId").value;
+                if (!id) return;
+                const d = state.ducks.find(x => x.id === id);
+                if (!confirm(`Delete duck "${d?.name ?? ""}"?`)) return;
+                deleteDuck(id);
+                closeAllModals();
+            });
+
+            // Card actions (delegated)
+            document.addEventListener("click", (e) => {
+                const btn = e.target.closest("[data-action]");
+                if (!btn) return;
+
+                const action = btn.getAttribute("data-action");
+                const id = btn.getAttribute("data-id");
+
+                if (action === "editDuck") {
+                    const d = state.ducks.find(x => x.id === id);
+                    if (!d) return;
+                    openDuckModal("edit", d);
+                }
+
+                if (action === "togglePart") {
+                    const part = btn.getAttribute("data-part");
+                    toggleDuckPart(id, part);
+                }
+
+                if (action === "addDuckToSet") {
+                    openDuckModal("create", null, id);
+                }
+            });
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
