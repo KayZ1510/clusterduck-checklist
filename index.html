@@ -7,8 +7,10 @@
   <title>Clusterduck Tracker — Ducks & Parts</title>
 
   <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -45,9 +47,19 @@
   </script>
 
   <style>
-    body { font-family: 'Spline Sans', sans-serif; }
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    body {
+      font-family: 'Spline Sans', sans-serif;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
     /* simple line clamp */
     .line-clamp-2 {
       display: -webkit-box;
@@ -61,16 +73,19 @@
 <body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col transition-colors duration-200">
 
   <!-- Sticky Navigation -->
-  <header class="sticky top-0 z-50 bg-surface-light/90 dark:bg-surface-dark/90 backdrop-blur-md border-b border-[#e6e5db] dark:border-[#3a392a]">
+  <header
+    class="sticky top-0 z-50 bg-surface-light/90 dark:bg-surface-dark/90 backdrop-blur-md border-b border-[#e6e5db] dark:border-[#3a392a]">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-20 gap-4">
         <!-- Logo -->
         <div class="flex items-center gap-3 shrink-0">
-          <div class="size-10 bg-primary rounded-xl flex items-center justify-center text-background-dark transform -rotate-3 hover:rotate-0 transition-transform shadow-sm">
+          <div
+            class="size-10 bg-primary rounded-xl flex items-center justify-center text-background-dark transform -rotate-3 hover:rotate-0 transition-transform shadow-sm">
             <span class="material-symbols-outlined text-3xl">cruelty_free</span>
           </div>
           <div class="hidden md:block">
-            <h1 class="text-background-dark dark:text-white text-xl font-bold leading-none tracking-tight">Clusterduck</h1>
+            <h1 class="text-background-dark dark:text-white text-xl font-bold leading-none tracking-tight">Clusterduck
+            </h1>
             <p class="text-[#8a8760] text-xs font-medium tracking-wide uppercase">Ducks & Parts</p>
           </div>
         </div>
@@ -89,24 +104,37 @@
 
         <!-- Actions -->
         <div class="flex items-center gap-2 shrink-0">
-          <button id="btnAddDuck" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-background-dark font-bold shadow-sm hover:bg-primary-dark transition-colors">
+          <button id="btnAddDuck"
+            class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-background-dark font-bold shadow-sm hover:bg-primary-dark transition-colors">
             <span class="material-symbols-outlined">pets</span> Create Duck
           </button>
 
-          <button id="btnExport" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold shadow-sm transition-colors">
+          <button id="btnShare"
+            class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold shadow-sm transition-colors"
+            title="Share a backup file (Drive / AirDrop / Telegram...)">
+            <span class="material-symbols-outlined">share</span> Share
+          </button>
+
+          <button id="btnCopy"
+            class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold shadow-sm transition-colors"
+            title="Copy backup JSON to clipboard">
+            <span class="material-symbols-outlined">content_copy</span> Copy
+          </button>
+
+          <button id="btnExport"
+            class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold shadow-sm transition-colors">
             <span class="material-symbols-outlined">download</span> Export
           </button>
 
-          <label class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold shadow-sm transition-colors cursor-pointer">
+          <label
+            class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold shadow-sm transition-colors cursor-pointer">
             <span class="material-symbols-outlined">upload</span> Import
             <input id="fileImport" type="file" accept="application/json" class="hidden" />
           </label>
 
-          <button id="btnCloud" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold shadow-sm transition-colors" title="Cloud Sync">
-            <span class="material-symbols-outlined">cloud</span> Sync
-          </button>
-
-          <button id="btnTheme" class="p-2 text-[#8a8760] hover:text-background-dark dark:hover:text-primary transition-colors" title="Toggle theme">
+          <button id="btnTheme"
+            class="p-2 text-[#8a8760] hover:text-background-dark dark:hover:text-primary transition-colors"
+            title="Toggle theme">
             <span class="material-symbols-outlined">dark_mode</span>
           </button>
         </div>
@@ -116,7 +144,8 @@
 
   <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Overview -->
-    <section class="mb-8 bg-surface-light dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-[#e6e5db] dark:border-[#3a392a]">
+    <section
+      class="mb-8 bg-surface-light dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-[#e6e5db] dark:border-[#3a392a]">
       <div class="flex flex-col md:flex-row gap-6 items-center justify-between">
         <div class="flex-1 w-full">
           <div class="flex justify-between items-end mb-3">
@@ -133,22 +162,26 @@
           </div>
 
           <div class="mt-4 flex flex-wrap gap-2">
-            <button id="btnQuickAddDuck" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-background-dark font-bold hover:bg-primary-dark transition-colors">
+            <button id="btnQuickAddDuck"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-background-dark font-bold hover:bg-primary-dark transition-colors">
               <span class="material-symbols-outlined">pets</span> Create Duck
             </button>
-            <button id="btnResetAll" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-surface-dark border border-[#e6e5db] dark:border-[#3a392a] text-[#8a8760] font-bold hover:text-red-500 transition-colors">
+            <button id="btnResetAll"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-surface-dark border border-[#e6e5db] dark:border-[#3a392a] text-[#8a8760] font-bold hover:text-red-500 transition-colors">
               <span class="material-symbols-outlined">delete_forever</span> Reset data
             </button>
           </div>
         </div>
 
         <div class="flex gap-4 shrink-0">
-          <div class="flex flex-col items-center justify-center bg-[#f0f0eb] dark:bg-[#38372b] rounded-xl p-4 min-w-[120px]">
+          <div
+            class="flex flex-col items-center justify-center bg-[#f0f0eb] dark:bg-[#38372b] rounded-xl p-4 min-w-[120px]">
             <span class="material-symbols-outlined text-primary mb-1">category</span>
             <span id="setCountBig" class="font-bold text-background-dark dark:text-white text-lg">0</span>
             <span class="text-xs text-[#8a8760] uppercase font-bold tracking-wider">Sets</span>
           </div>
-          <div class="flex flex-col items-center justify-center bg-[#f0f0eb] dark:bg-[#38372b] rounded-xl p-4 min-w-[120px]">
+          <div
+            class="flex flex-col items-center justify-center bg-[#f0f0eb] dark:bg-[#38372b] rounded-xl p-4 min-w-[120px]">
             <span class="material-symbols-outlined text-accent-orange mb-1">done_all</span>
             <span id="partsProgressBig" class="font-bold text-background-dark dark:text-white text-lg">0/0</span>
             <span class="text-xs text-[#8a8760] uppercase font-bold tracking-wider">Parts</span>
@@ -158,43 +191,60 @@
     </section>
 
     <!-- Filters -->
-    <section class="sticky top-20 z-40 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm py-2 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
-      <div class="flex flex-col md:flex-row gap-3 justify-between items-start md:items-center border-b border-[#e6e5db] dark:border-[#3a392a] pb-4">
+    <section
+      class="sticky top-20 z-40 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm py-2 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div
+        class="flex flex-col md:flex-row gap-3 justify-between items-start md:items-center border-b border-[#e6e5db] dark:border-[#3a392a] pb-4">
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex p-1 bg-[#e6e5db] dark:bg-[#38372b] rounded-full">
-            <button id="tabAllDucks" class="px-6 py-2 rounded-full bg-white dark:bg-surface-dark shadow-sm text-background-dark dark:text-white font-bold text-sm transition-all transform hover:scale-105">
+            <button id="tabAllDucks"
+              class="px-6 py-2 rounded-full bg-white dark:bg-surface-dark shadow-sm text-background-dark dark:text-white font-bold text-sm transition-all transform hover:scale-105">
               All Ducks
             </button>
-            <button id="tabBySet" class="px-6 py-2 rounded-full text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold text-sm transition-colors">
+            <button id="tabBySet"
+              class="px-6 py-2 rounded-full text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold text-sm transition-colors">
               By Set
             </button>
           </div>
 
-          <select id="setFilter" class="w-full sm:w-[260px] px-4 py-2 bg-white dark:bg-surface-dark border border-[#e6e5db] dark:border-[#3a392a] rounded-full text-background-dark dark:text-white focus:ring-2 focus:ring-primary">
+          <select id="setFilter"
+            class="w-full sm:w-[260px] px-4 py-2 bg-white dark:bg-surface-dark border border-[#e6e5db] dark:border-[#3a392a] rounded-full text-background-dark dark:text-white focus:ring-2 focus:ring-primary">
             <option value="">All Sets</option>
           </select>
 
-          <label class="flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-surface-dark border border-[#e6e5db] dark:border-[#3a392a] text-sm font-bold text-[#8a8760] dark:text-gray-200">
+          <label
+            class="flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-surface-dark border border-[#e6e5db] dark:border-[#3a392a] text-sm font-bold text-[#8a8760] dark:text-gray-200">
             <input id="onlyUnassigned" type="checkbox" class="rounded text-primary focus:ring-primary" />
             Only unassigned ducks
           </label>
+
+          <select id="completionFilter"
+            class="w-full sm:w-[200px] px-4 py-2 bg-white dark:bg-surface-dark border border-[#e6e5db] dark:border-[#3a392a] rounded-full text-background-dark dark:text-white focus:ring-2 focus:ring-primary text-sm font-bold">
+            <option value="all">All completion</option>
+            <option value="completed">✅ Completed (3/3)</option>
+            <option value="partial">⚡ Partial (2/3)</option>
+            <option value="incomplete">⏳ Incomplete (&lt;2)</option>
+          </select>
         </div>
 
         <div class="text-xs text-[#8a8760]">
-          Stored locally in your browser (localStorage). Enable Cloud Sync to share across devices.
+          Stored locally in your browser (localStorage).
         </div>
       </div>
     </section>
 
     <!-- Content -->
     <section class="space-y-6">
-      <div id="emptyState" class="hidden bg-surface-light dark:bg-surface-dark rounded-2xl p-10 border border-[#e6e5db] dark:border-[#3a392a] text-center">
+      <div id="emptyState"
+        class="hidden bg-surface-light dark:bg-surface-dark rounded-2xl p-10 border border-[#e6e5db] dark:border-[#3a392a] text-center">
         <div class="flex flex-col items-center gap-3">
           <span class="material-symbols-outlined text-5xl text-[#8a8760]">pets</span>
           <h4 class="text-xl font-bold text-background-dark dark:text-white">No ducks yet</h4>
-          <p class="text-[#8a8760] text-sm max-w-md">Bấm “Create Duck”, chọn set, sau đó tick Head/Wings/Tail đã thu thập.</p>
+          <p class="text-[#8a8760] text-sm max-w-md">Click “Create Duck”, pick a set, then tick Head/Wings/Tail when
+            collected.</p>
           <div class="flex flex-wrap gap-2 justify-center mt-2">
-            <button id="btnEmptyAddDuck" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-background-dark font-bold shadow-sm hover:bg-primary-dark transition-colors">
+            <button id="btnEmptyAddDuck"
+              class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-background-dark font-bold shadow-sm hover:bg-primary-dark transition-colors">
               <span class="material-symbols-outlined">pets</span> Create Duck
             </button>
           </div>
@@ -209,19 +259,24 @@
     </section>
 
     <!-- Mobile FAB -->
-    <button id="fab" class="fixed bottom-6 right-6 sm:hidden size-14 rounded-full bg-primary text-background-dark shadow-lg flex items-center justify-center z-50 hover:bg-primary-dark transition-colors" title="Quick Actions">
+    <button id="fab"
+      class="fixed bottom-6 right-6 sm:hidden size-14 rounded-full bg-primary text-background-dark shadow-lg flex items-center justify-center z-50 hover:bg-primary-dark transition-colors"
+      title="Quick Actions">
       <span class="material-symbols-outlined text-3xl">add</span>
     </button>
   </main>
 
   <footer class="mt-12 border-t border-[#e6e5db] dark:border-[#3a392a] py-8 bg-surface-light dark:bg-surface-dark">
-    <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-4">
+    <div
+      class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-4">
       <div>
-        <h2 class="text-[#181711] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Clusterduck Tracker</h2>
-        <p class="text-[#8a8760] text-sm">Tạo duck + tick bộ phận đã thu thập (Head/Wings/Tail).</p>
+        <h2 class="text-[#181711] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Clusterduck
+          Tracker</h2>
+        <p class="text-[#8a8760] text-sm">Create ducks and tick collected parts (Head/Wings/Tail).</p>
       </div>
       <div class="flex gap-4">
-        <button id="btnResetAllFooter" class="text-[#8a8760] hover:text-red-500 transition-colors text-sm font-medium">Reset data</button>
+        <button id="btnResetAllFooter"
+          class="text-[#8a8760] hover:text-red-500 transition-colors text-sm font-medium">Reset data</button>
       </div>
     </div>
   </footer>
@@ -231,28 +286,38 @@
 
   <!-- Modal: Quick Actions (mobile) -->
   <div id="modalQuick" class="hidden fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-4">
-    <div class="w-full max-w-md bg-surface-light dark:bg-surface-dark rounded-2xl border border-[#e6e5db] dark:border-[#3a392a] shadow-xl overflow-hidden">
+    <div
+      class="w-full max-w-md bg-surface-light dark:bg-surface-dark rounded-2xl border border-[#e6e5db] dark:border-[#3a392a] shadow-xl overflow-hidden">
       <div class="p-5 border-b border-[#e6e5db] dark:border-[#3a392a] flex items-center justify-between">
         <div>
           <h3 class="text-lg font-bold text-background-dark dark:text-white">Quick Actions</h3>
           <p class="text-xs text-[#8a8760]">Quick create / import / export</p>
         </div>
-        <button data-close class="p-2 rounded-full hover:bg-[#f0f0eb] dark:hover:bg-[#38372b] transition-colors" title="Close">
+        <button data-close class="p-2 rounded-full hover:bg-[#f0f0eb] dark:hover:bg-[#38372b] transition-colors"
+          title="Close">
           <span class="material-symbols-outlined text-[#8a8760]">close</span>
         </button>
       </div>
       <div class="p-5 space-y-3">
-        <button id="qaAddDuck" class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-primary text-background-dark font-bold hover:bg-primary-dark transition-colors">
+        <button id="qaAddDuck"
+          class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-primary text-background-dark font-bold hover:bg-primary-dark transition-colors">
           <span class="material-symbols-outlined">pets</span> Create Duck
         </button>
-        <button id="qaCloud" class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] font-bold hover:text-background-dark dark:hover:text-primary transition-colors">
-          <span class="material-symbols-outlined">cloud</span> Cloud Sync
+        <button id="qaShare"
+          class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] font-bold hover:text-background-dark dark:hover:text-primary transition-colors">
+          <span class="material-symbols-outlined">share</span> Share backup
+        </button>
+        <button id="qaCopy"
+          class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] font-bold hover:text-background-dark dark:hover:text-primary transition-colors">
+          <span class="material-symbols-outlined">content_copy</span> Copy backup JSON
         </button>
 
-        <button id="qaExport" class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] font-bold hover:text-background-dark dark:hover:text-primary transition-colors">
+        <button id="qaExport"
+          class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] font-bold hover:text-background-dark dark:hover:text-primary transition-colors">
           <span class="material-symbols-outlined">download</span> Export
         </button>
-        <label class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] font-bold hover:text-background-dark dark:hover:text-primary transition-colors cursor-pointer">
+        <label
+          class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] font-bold hover:text-background-dark dark:hover:text-primary transition-colors cursor-pointer">
           <span class="material-symbols-outlined">upload</span> Import
           <input id="fileImportMobile" type="file" accept="application/json" class="hidden" />
         </label>
@@ -262,13 +327,15 @@
 
   <!-- Modal: Duck -->
   <div id="modalDuck" class="hidden fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-4">
-    <div class="w-full max-w-xl bg-surface-light dark:bg-surface-dark rounded-2xl border border-[#e6e5db] dark:border-[#3a392a] shadow-xl overflow-hidden">
+    <div
+      class="w-full max-w-xl bg-surface-light dark:bg-surface-dark rounded-2xl border border-[#e6e5db] dark:border-[#3a392a] shadow-xl overflow-hidden">
       <div class="p-6 border-b border-[#e6e5db] dark:border-[#3a392a] flex items-center justify-between">
         <div>
           <h3 id="duckModalTitle" class="text-xl font-bold text-background-dark dark:text-white">Create Duck</h3>
           <p class="text-sm text-[#8a8760]">Tick which default parts you've collected for this duck.</p>
         </div>
-        <button data-close class="p-2 rounded-full hover:bg-[#f0f0eb] dark:hover:bg-[#38372b] transition-colors" title="Close">
+        <button data-close class="p-2 rounded-full hover:bg-[#f0f0eb] dark:hover:bg-[#38372b] transition-colors"
+          title="Close">
           <span class="material-symbols-outlined text-[#8a8760]">close</span>
         </button>
       </div>
@@ -296,17 +363,20 @@
           <div class="sm:col-span-2">
             <label class="block text-sm font-bold text-[#8a8760] mb-2">Collected parts</label>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <label class="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white dark:bg-[#38372b] border border-[#e6e5db] dark:border-[#3a392a] font-bold text-[#8a8760] dark:text-gray-200 cursor-pointer">
+              <label
+                class="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white dark:bg-[#38372b] border border-[#e6e5db] dark:border-[#3a392a] font-bold text-[#8a8760] dark:text-gray-200 cursor-pointer">
                 <input id="partHead" type="checkbox" class="rounded text-primary focus:ring-primary" />
                 <span class="material-symbols-outlined text-accent-orange">face</span>
                 Head
               </label>
-              <label class="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white dark:bg-[#38372b] border border-[#e6e5db] dark:border-[#3a392a] font-bold text-[#8a8760] dark:text-gray-200 cursor-pointer">
+              <label
+                class="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white dark:bg-[#38372b] border border-[#e6e5db] dark:border-[#3a392a] font-bold text-[#8a8760] dark:text-gray-200 cursor-pointer">
                 <input id="partWing" type="checkbox" class="rounded text-primary focus:ring-primary" />
                 <span class="material-symbols-outlined text-accent-orange">flutter_dash</span>
                 Wings
               </label>
-              <label class="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white dark:bg-[#38372b] border border-[#e6e5db] dark:border-[#3a392a] font-bold text-[#8a8760] dark:text-gray-200 cursor-pointer">
+              <label
+                class="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white dark:bg-[#38372b] border border-[#e6e5db] dark:border-[#3a392a] font-bold text-[#8a8760] dark:text-gray-200 cursor-pointer">
                 <input id="partTail" type="checkbox" class="rounded text-primary focus:ring-primary" />
                 <span class="material-symbols-outlined text-accent-orange">sweep</span>
                 Tail
@@ -329,109 +399,17 @@
           </button>
 
           <div class="flex gap-2 ml-auto">
-            <button type="button" data-close class="px-5 py-2 rounded-full bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold transition-colors">Cancel</button>
-            <button type="submit" class="px-5 py-2 rounded-full bg-primary text-background-dark font-bold shadow-sm hover:bg-primary-dark transition-colors">Save</button>
+            <button type="button" data-close
+              class="px-5 py-2 rounded-full bg-[#f0f0eb] dark:bg-[#38372b] text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold transition-colors">Cancel</button>
+            <button type="submit"
+              class="px-5 py-2 rounded-full bg-primary text-background-dark font-bold shadow-sm hover:bg-primary-dark transition-colors">Save</button>
           </div>
         </div>
       </form>
     </div>
   </div>
 
-  
-    <!-- Toast -->
-    <div id="toast" class="hidden fixed top-24 right-4 z-[80] max-w-sm">
-      <div id="toastInner" class="bg-surface-light dark:bg-surface-dark border border-[#e6e5db] dark:border-[#3a392a] shadow-lg rounded-2xl p-4">
-        <div class="flex items-start gap-3">
-          <span id="toastIcon" class="material-symbols-outlined text-accent-orange">info</span>
-          <div class="min-w-0">
-            <div id="toastTitle" class="font-bold text-background-dark dark:text-white">Info</div>
-            <div id="toastMsg" class="text-sm text-[#8a8760] mt-1">...</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal: Cloud Sync -->
-    <div id="modalCloud" class="hidden fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-4">
-      <div class="w-full max-w-xl bg-surface-light dark:bg-surface-dark rounded-2xl border border-[#e6e5db] dark:border-[#3a392a] shadow-xl overflow-hidden">
-        <div class="p-6 border-b border-[#e6e5db] dark:border-[#3a392a] flex items-center justify-between">
-          <div>
-            <h3 class="text-xl font-bold text-background-dark dark:text-white">Cloud Sync</h3>
-            <p class="text-sm text-[#8a8760]">Sync your data across devices via a small backend.</p>
-          </div>
-          <button data-close class="p-2 rounded-full hover:bg-[#f0f0eb] dark:hover:bg-[#38372b] transition-colors" title="Close">
-            <span class="material-symbols-outlined text-[#8a8760]">close</span>
-          </button>
-        </div>
-
-        <div class="p-6 space-y-5">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="sm:col-span-2">
-              <label class="block text-sm font-bold text-[#8a8760] mb-1">Sync Server URL</label>
-              <input id="syncUrl" class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#38372b] border border-[#e6e5db] dark:border-[#3a392a] text-background-dark dark:text-white focus:ring-2 focus:ring-primary"
-                placeholder="e.g. https://your-domain.com" />
-              <p class="text-xs text-[#8a8760] mt-1">If you run locally: use <b>http://localhost:8000</b> (and open this page via http://, not file://).</p>
-            </div>
-
-            <div>
-              <label class="block text-sm font-bold text-[#8a8760] mb-1">Dataset ID</label>
-              <input id="datasetId" class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#38372b] border border-[#e6e5db] dark:border-[#3a392a] text-background-dark dark:text-white focus:ring-2 focus:ring-primary"
-                placeholder="e.g. ds_abc123" />
-            </div>
-
-            <div>
-              <label class="block text-sm font-bold text-[#8a8760] mb-1">Write Key</label>
-              <input id="writeKey" class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#38372b] border border-[#e6e5db] dark:border-[#3a392a] text-background-dark dark:text-white focus:ring-2 focus:ring-primary"
-                placeholder="Bearer token / key" />
-            </div>
-
-            <div class="sm:col-span-2 flex flex-wrap gap-2">
-              <button id="btnCreateDataset" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-background-dark font-bold hover:bg-primary-dark transition-colors">
-                <span class="material-symbols-outlined">add</span> Create dataset
-              </button>
-
-              <button id="btnPull" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-surface-dark border border-[#e6e5db] dark:border-[#3a392a] text-[#8a8760] font-bold hover:text-background-dark dark:hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">cloud_download</span> Pull from cloud
-              </button>
-
-              <button id="btnPush" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-surface-dark border border-[#e6e5db] dark:border-[#3a392a] text-[#8a8760] font-bold hover:text-background-dark dark:hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">cloud_upload</span> Push to cloud
-              </button>
-
-              <label class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-surface-dark border border-[#e6e5db] dark:border-[#3a392a] text-sm font-bold text-[#8a8760] dark:text-gray-200">
-                <input id="autoSync" type="checkbox" class="rounded text-primary focus:ring-primary" />
-                Auto sync
-              </label>
-            </div>
-
-            <div class="sm:col-span-2">
-              <div class="rounded-2xl border border-[#e6e5db] dark:border-[#3a392a] bg-white/60 dark:bg-[#38372b]/60 p-4 text-sm text-[#8a8760]">
-                <div class="font-bold mb-1 text-background-dark dark:text-white">How it works</div>
-                <ul class="list-disc ml-5 space-y-1">
-                  <li>This app currently stores data in <b>localStorage</b> (per-device).</li>
-                  <li>Cloud Sync stores the same JSON on a server so all devices can pull/push.</li>
-                  <li>Keep your <b>Write Key</b> secret. Use HTTPS if public.</li>
-                </ul>
-              </div>
-            </div>
-
-          </div>
-
-          <div class="flex items-center justify-between">
-            <button id="btnDisconnect" class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-bold">
-              <span class="material-symbols-outlined">link_off</span> Disconnect
-            </button>
-
-            <div class="text-xs text-[#8a8760]">
-              Status: <span id="cloudStatusText" class="font-bold">Not connected</span>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-<script>
+  <script>
     /********************
      * Preset sets (your list)
      ********************/
@@ -474,15 +452,13 @@
     const K_DUCKS = "clusterduck_ducks_with_parts_v1";    // ducks with parts status
     const K_THEME = "clusterduck_theme_v1";
 
-        // Cloud sync config
-        const K_SYNC = "clusterduck_sync_config_v1";
-
     const state = {
       sets: [],   // {id, name, createdAt}
       ducks: [],  // {id, name, setId, notes, parts:{head,wing,tail}, createdAt, updatedAt}
       view: "ducks", // ducks | set
       filterSetId: "",
       onlyUnassigned: false,
+      completionFilter: "all", // all | completed | incomplete
       search: ""
     };
 
@@ -500,193 +476,12 @@
         .replaceAll("'", "&#39;");
     }
 
-    
-
-        // ---------- UI Toast ----------
-        let __toastTimer = null;
-        function toast(title, msg, kind = "info") {
-            const el = document.getElementById("toast");
-            const icon = document.getElementById("toastIcon");
-            const t = document.getElementById("toastTitle");
-            const m = document.getElementById("toastMsg");
-            if (!el || !icon || !t || !m) return;
-
-            const iconMap = { info: "info", ok: "check_circle", warn: "warning", err: "error" };
-            icon.textContent = iconMap[kind] ?? "info";
-            t.textContent = title;
-            m.textContent = msg;
-
-            el.classList.remove("hidden");
-            clearTimeout(__toastTimer);
-            __toastTimer = setTimeout(() => el.classList.add("hidden"), 2600);
-        }
-
-        // ---------- Cloud Sync ----------
-        const syncState = {
-            enabled: false,
-            url: "",
-            datasetId: "",
-            writeKey: "",
-            revision: null,      // server revision number
-            dirty: false,
-            auto: false,
-            pushTimer: null,
-            lastSyncedAt: null,
-        };
-
-        function loadSyncConfig() {
-            const cfg = load(K_SYNC, null);
-            if (!cfg) return;
-            syncState.enabled = !!cfg.enabled;
-            syncState.url = cfg.url || "";
-            syncState.datasetId = cfg.datasetId || "";
-            syncState.writeKey = cfg.writeKey || "";
-            syncState.revision = cfg.revision ?? null;
-            syncState.auto = !!cfg.auto;
-            syncState.lastSyncedAt = cfg.lastSyncedAt ?? null;
-        }
-
-        function saveSyncConfig() {
-            save(K_SYNC, {
-                enabled: syncState.enabled,
-                url: syncState.url,
-                datasetId: syncState.datasetId,
-                writeKey: syncState.writeKey,
-                revision: syncState.revision,
-                auto: syncState.auto,
-                lastSyncedAt: syncState.lastSyncedAt,
-            });
-        }
-
-        function updateCloudPills() {
-            const pill = document.getElementById("cloudStatusPill");
-            const dirty = document.getElementById("cloudDirtyPill");
-            const statusText = document.getElementById("cloudStatusText");
-
-            const connected = !!(syncState.enabled && syncState.url && syncState.datasetId && syncState.writeKey);
-            if (statusText) statusText.textContent = connected ? "Connected" : "Not connected";
-
-            if (!pill) return;
-            if (connected) {
-                pill.innerHTML = `<span class="material-symbols-outlined text-base">cloud_done</span> Cloud: Connected`;
-            } else {
-                pill.innerHTML = `<span class="material-symbols-outlined text-base">cloud_off</span> Cloud: Not connected`;
-            }
-
-            if (dirty) dirty.classList.toggle("hidden", !syncState.dirty);
-        }
-
-        function markDirty() {
-            if (!syncState.enabled) return;
-            syncState.dirty = true;
-            updateCloudPills();
-            if (syncState.auto) schedulePush();
-        }
-
-        function schedulePush() {
-            clearTimeout(syncState.pushTimer);
-            syncState.pushTimer = setTimeout(() => {
-                cloudPush().catch(() => {});
-            }, 1200);
-        }
-
-        function syncHeaders() {
-            const h = { "Content-Type": "application/json" };
-            if (syncState.writeKey) h["Authorization"] = `Bearer ${syncState.writeKey}`;
-            if (syncState.revision !== null && syncState.revision !== undefined) h["If-Match"] = String(syncState.revision);
-            return h;
-        }
-
-        function syncBase() {
-            return (syncState.url || "").replace(/\/+$/, "");
-        }
-
-        async function cloudCreateDataset() {
-            const base = syncBase();
-            if (!base) throw new Error("Missing server URL");
-            const res = await fetch(`${base}/v1/datasets`, { method: "POST" });
-            if (!res.ok) throw new Error(`Create failed (${res.status})`);
-            const data = await res.json();
-            syncState.datasetId = data.datasetId;
-            syncState.writeKey = data.writeKey;
-            syncState.revision = data.revision ?? 0;
-            syncState.enabled = true;
-            saveSyncConfig();
-            updateCloudPills();
-            return data;
-        }
-
-        async function cloudPull({ replaceLocal = true } = {}) {
-            const base = syncBase();
-            if (!base || !syncState.datasetId || !syncState.writeKey) throw new Error("Missing sync config");
-            const res = await fetch(`${base}/v1/datasets/${encodeURIComponent(syncState.datasetId)}`, {
-                method: "GET",
-                headers: { "Authorization": `Bearer ${syncState.writeKey}` }
-            });
-            if (res.status === 404) throw new Error("Dataset not found");
-            if (!res.ok) throw new Error(`Pull failed (${res.status})`);
-
-            const data = await res.json();
-            // expected {revision, sets, ducks}
-            syncState.revision = data.revision ?? syncState.revision ?? 0;
-
-            if (replaceLocal) {
-                state.sets = Array.isArray(data.sets) ? data.sets : state.sets;
-                state.ducks = Array.isArray(data.ducks) ? data.ducks : state.ducks;
-                save(K_SETS, state.sets);
-                save(K_DUCKS, state.ducks);
-                syncState.dirty = false;
-            }
-            syncState.lastSyncedAt = Date.now();
-            saveSyncConfig();
-            render();
-            updateCloudPills();
-            toast("Cloud Sync", "Pulled latest data from cloud.", "ok");
-        }
-
-        async function cloudPush() {
-            const base = syncBase();
-            if (!base || !syncState.datasetId || !syncState.writeKey) throw new Error("Missing sync config");
-
-            const payload = {
-                sets: state.sets,
-                ducks: state.ducks,
-            };
-
-            const res = await fetch(`${base}/v1/datasets/${encodeURIComponent(syncState.datasetId)}`, {
-                method: "PUT",
-                headers: syncHeaders(),
-                body: JSON.stringify(payload)
-            });
-
-            if (res.status === 409) {
-                // conflict: server has newer revision
-                const info = await res.json().catch(() => ({}));
-                toast("Sync conflict", "Cloud has newer data. Please Pull first, then Push again.", "warn");
-                // update revision if provided
-                if (typeof info.revision === "number") syncState.revision = info.revision;
-                saveSyncConfig();
-                updateCloudPills();
-                return;
-            }
-
-            if (!res.ok) throw new Error(`Push failed (${res.status})`);
-            const data = await res.json();
-            syncState.revision = data.revision ?? syncState.revision ?? 0;
-            syncState.dirty = false;
-            syncState.lastSyncedAt = Date.now();
-            saveSyncConfig();
-            updateCloudPills();
-            toast("Cloud Sync", "Pushed changes to cloud.", "ok");
-        }
-function load(key, fallback) {
+    function load(key, fallback) {
       const raw = localStorage.getItem(key);
       if (!raw) return fallback;
       try { return JSON.parse(raw); } catch { return fallback; }
     }
-    function save(key, value) { localStorage.setItem(key, JSON.stringify(value));
-            if (key === K_DUCKS || key === K_SETS) { try { markDirty(); } catch {} }
-        }
+    function save(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
 
     function loadTheme() { return localStorage.getItem(K_THEME); }
     function saveTheme(v) { localStorage.setItem(K_THEME, v); }
@@ -727,7 +522,7 @@ function load(key, fallback) {
       const sel = $("setFilter");
       sel.innerHTML =
         `<option value="">All Sets</option>` +
-        state.sets.slice().sort((a,b) => a.name.localeCompare(b.name))
+        state.sets.slice().sort((a, b) => a.name.localeCompare(b.name))
           .map(s => `<option value="${s.id}">${escapeHTML(s.name)}</option>`).join("");
       sel.value = state.filterSetId;
     }
@@ -736,7 +531,7 @@ function load(key, fallback) {
       const sel = $("duckSetId");
       sel.innerHTML =
         `<option value="">(None)</option>` +
-        state.sets.slice().sort((a,b) => a.name.localeCompare(b.name))
+        state.sets.slice().sort((a, b) => a.name.localeCompare(b.name))
           .map(s => `<option value="${s.id}">${escapeHTML(s.name)}</option>`).join("");
       sel.value = selectedId || state.filterSetId || "";
     }
@@ -752,7 +547,7 @@ function load(key, fallback) {
 
     function calcDuckProgress(d) {
       const p = normalizeDuckParts(d.parts);
-      const collected = (p.head?1:0) + (p.wing?1:0) + (p.tail?1:0);
+      const collected = (p.head ? 1 : 0) + (p.wing ? 1 : 0) + (p.tail ? 1 : 0);
       return { collected, total: 3 };
     }
 
@@ -761,7 +556,7 @@ function load(key, fallback) {
       let collected = 0;
       for (const d of state.ducks) {
         const p = normalizeDuckParts(d.parts);
-        collected += (p.head?1:0) + (p.wing?1:0) + (p.tail?1:0);
+        collected += (p.head ? 1 : 0) + (p.wing ? 1 : 0) + (p.tail ? 1 : 0);
       }
       return { collected, total };
     }
@@ -810,21 +605,10 @@ function load(key, fallback) {
               <div class="mt-3">
                 <div class="flex items-center justify-between text-[10px] font-bold text-[#8a8760] mb-1">
                   <span>Parts</span>
-                  <span>${Math.round((collected/total)*100)}%</span>
+                  <span>${Math.round((collected / total) * 100)}%</span>
                 </div>
                 <div class="h-2 w-full bg-[#f0f0eb] dark:bg-[#38372b] rounded-full overflow-hidden">
-                  <div class="h-full bg-primary" style="width: ${Math.round((collected/total)*100)}%;"></div>
-                </div>
-              </div>
-
-              
-              <div class="mt-3">
-                <div class="flex items-center justify-between text-[10px] font-bold text-[#8a8760] mb-1">
-                  <span>Parts</span>
-                  <span>${Math.round((collected/total)*100)}%</span>
-                </div>
-                <div class="h-2 w-full bg-[#f0f0eb] dark:bg-[#38372b] rounded-full overflow-hidden">
-                  <div class="h-full bg-primary" style="width: ${Math.round((collected/total)*100)}%;"></div>
+                  <div class="h-full bg-primary" style="width: ${Math.round((collected / total) * 100)}%;"></div>
                 </div>
               </div>
 
@@ -847,13 +631,22 @@ function load(key, fallback) {
       const ducksInSet = state.ducks
         .filter(d => d.setId === s.id)
         .slice()
-        .sort((a,b) => a.name.localeCompare(b.name));
+        .sort((a, b) => a.name.localeCompare(b.name));
 
       // apply current filters
       const q = normalize(state.search);
       const visible = ducksInSet.filter(d => {
         if (state.onlyUnassigned) return false;
         if (state.filterSetId && s.id !== state.filterSetId) return false;
+
+        // Completion filter
+        if (state.completionFilter !== "all") {
+          const { collected, total } = calcDuckProgress(d);
+          if (state.completionFilter === "completed" && collected !== 3) return false;
+          if (state.completionFilter === "partial" && collected !== 2) return false;
+          if (state.completionFilter === "incomplete" && collected >= 2) return false;
+        }
+
         if (!q) return true;
         const hay = `${d.name} ${d.notes} ${s.name}`;
         return matchesSearch(hay, q);
@@ -893,13 +686,12 @@ function load(key, fallback) {
               View ducks in this set
             </summary>
             <div class="mt-3 space-y-3">
-              ${
-                visible.length
-                  ? visible.map(d => duckCardHTML(d, false)).join("")
-                  : `<div class="bg-white/60 dark:bg-[#38372b]/60 border border-[#e6e5db] dark:border-[#3a392a] rounded-2xl p-4 text-sm text-[#8a8760]">
+              ${visible.length
+          ? visible.map(d => duckCardHTML(d, false)).join("")
+          : `<div class="bg-white/60 dark:bg-[#38372b]/60 border border-[#e6e5db] dark:border-[#3a392a] rounded-2xl p-4 text-sm text-[#8a8760]">
                       ${count ? "No ducks in this set match your search." : "No ducks in this set yet. Click “Duck” to create one."}
                      </div>`
-              }
+        }
             </div>
           </details>
         </div>
@@ -914,6 +706,14 @@ function load(key, fallback) {
           if (state.filterSetId && d.setId !== state.filterSetId) return false;
           if (state.onlyUnassigned && !!d.setId) return false;
 
+          // Completion filter
+          if (state.completionFilter !== "all") {
+            const { collected, total } = calcDuckProgress(d);
+            if (state.completionFilter === "completed" && collected !== 3) return false;
+            if (state.completionFilter === "partial" && collected !== 2) return false;
+            if (state.completionFilter === "incomplete" && collected >= 2) return false;
+          }
+
           if (q) {
             const hay = `${d.name} ${d.notes} ${setName(d.setId)}`;
             return matchesSearch(hay, q);
@@ -921,7 +721,7 @@ function load(key, fallback) {
           return true;
         })
         .slice()
-        .sort((a,b) => a.name.localeCompare(b.name));
+        .sort((a, b) => a.name.localeCompare(b.name));
     }
 
     function getFilteredSets() {
@@ -932,6 +732,19 @@ function load(key, fallback) {
           if (state.filterSetId && s.id !== state.filterSetId) return false;
           if (state.onlyUnassigned) return false;
 
+          // If completion filter is active, only show sets that have matching ducks
+          if (state.completionFilter !== "all") {
+            const ducksInSet = state.ducks.filter(d => {
+              if (d.setId !== s.id) return false;
+              const { collected } = calcDuckProgress(d);
+              if (state.completionFilter === "completed") return collected === 3;
+              if (state.completionFilter === "partial") return collected === 2;
+              if (state.completionFilter === "incomplete") return collected < 2;
+              return true;
+            });
+            if (ducksInSet.length === 0) return false;
+          }
+
           if (q) {
             const ducksInSet = state.ducks.filter(d => d.setId === s.id);
             const setMatches = matchesSearch(s.name, q);
@@ -941,7 +754,7 @@ function load(key, fallback) {
           return true;
         })
         .slice()
-        .sort((a,b) => a.name.localeCompare(b.name));
+        .sort((a, b) => a.name.localeCompare(b.name));
     }
 
     function setTabActive(which) {
@@ -960,6 +773,7 @@ function load(key, fallback) {
 
     function render() {
       refreshSetFilterOptions();
+      $("completionFilter").value = state.completionFilter;
 
       $("setCountBig").textContent = String(state.sets.length);
       $("duckCountBig").textContent = String(state.ducks.length);
@@ -1104,6 +918,54 @@ function load(key, fallback) {
       URL.revokeObjectURL(url);
     }
 
+
+
+    async function shareBackup() {
+      const payload = {
+        version: 2,
+        exportedAt: new Date().toISOString(),
+        sets: state.sets,
+        ducks: state.ducks
+      };
+
+      const filename = `clusterduck-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+
+      // Prefer native Share sheet (mobile)
+      try {
+        const file = new File([blob], filename, { type: "application/json" });
+        if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
+          await navigator.share({ title: "Clusterduck backup", files: [file] });
+          return;
+        }
+      } catch (_) { }
+
+      // Fallback: download
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function copyBackupJSON() {
+      const payload = {
+        version: 2,
+        exportedAt: new Date().toISOString(),
+        sets: state.sets,
+        ducks: state.ducks
+      };
+      const text = JSON.stringify(payload);
+      try {
+        await navigator.clipboard.writeText(text);
+        alert("Backup JSON copied to clipboard ✅");
+      } catch {
+        alert("Copy failed. Your browser may block clipboard access. Try Export/Share instead.");
+      }
+    }
     function importJSONText(text) {
       try {
         const data = JSON.parse(text);
@@ -1115,14 +977,14 @@ function load(key, fallback) {
 
         const ducks = Array.isArray(data.ducks)
           ? data.ducks.map(d => ({
-              id: d.id ?? uid(),
-              name: safeText(d.name ?? "Unnamed Duck"),
-              setId: safeText(d.setId ?? ""),
-              notes: safeText(d.notes ?? ""),
-              parts: normalizeDuckParts(d.parts),
-              createdAt: Number(d.createdAt ?? Date.now()),
-              updatedAt: Number(d.updatedAt ?? Date.now()),
-            }))
+            id: d.id ?? uid(),
+            name: safeText(d.name ?? "Unnamed Duck"),
+            setId: safeText(d.setId ?? ""),
+            notes: safeText(d.notes ?? ""),
+            parts: normalizeDuckParts(d.parts),
+            createdAt: Number(d.createdAt ?? Date.now()),
+            updatedAt: Number(d.updatedAt ?? Date.now()),
+          }))
           : [];
 
         // If imported sets empty, keep presets
@@ -1143,6 +1005,8 @@ function load(key, fallback) {
         $("setFilter").value = "";
         state.onlyUnassigned = false;
         $("onlyUnassigned").checked = false;
+        state.completionFilter = "all";
+        $("completionFilter").value = "all";
 
         render();
       } catch {
@@ -1176,101 +1040,13 @@ function load(key, fallback) {
       // Filters
       $("setFilter").addEventListener("change", (e) => { state.filterSetId = e.target.value; render(); });
       $("onlyUnassigned").addEventListener("change", (e) => { state.onlyUnassigned = e.target.checked; render(); });
+      $("completionFilter").addEventListener("change", (e) => { state.completionFilter = e.target.value; render(); });
 
       // Search
       $("searchInput").addEventListener("input", (e) => { state.search = e.target.value; render(); });
 
       // Theme
       $("btnTheme").addEventListener("click", toggleTheme);
-
-            // Cloud modal
-            const openCloud = () => {
-                // preload fields
-                document.getElementById("syncUrl").value = syncState.url || "";
-                document.getElementById("datasetId").value = syncState.datasetId || "";
-                document.getElementById("writeKey").value = syncState.writeKey || "";
-                document.getElementById("autoSync").checked = !!syncState.auto;
-                updateCloudPills();
-                openModal("modalCloud");
-            };
-            const btnCloud = document.getElementById("btnCloud");
-            if (btnCloud) btnCloud.addEventListener("click", openCloud);
-            const qaCloud = document.getElementById("qaCloud");
-            if (qaCloud) qaCloud.addEventListener("click", () => { closeAllModals(); openCloud(); });
-
-            // Cloud inputs persist
-            const syncUrlEl = document.getElementById("syncUrl");
-            const datasetEl = document.getElementById("datasetId");
-            const keyEl = document.getElementById("writeKey");
-            const autoEl = document.getElementById("autoSync");
-            const statusText = document.getElementById("cloudStatusText");
-
-            function readCloudFields() {
-                syncState.url = (syncUrlEl?.value || "").trim();
-                syncState.datasetId = (datasetEl?.value || "").trim();
-                syncState.writeKey = (keyEl?.value || "").trim();
-                syncState.auto = !!autoEl?.checked;
-                syncState.enabled = !!(syncState.url && syncState.datasetId && syncState.writeKey);
-                saveSyncConfig();
-                updateCloudPills();
-            }
-            [syncUrlEl, datasetEl, keyEl].forEach(el => el && el.addEventListener("change", readCloudFields));
-            if (autoEl) autoEl.addEventListener("change", () => { readCloudFields(); if (syncState.auto && syncState.dirty) schedulePush(); });
-
-            // Cloud actions
-            const btnCreate = document.getElementById("btnCreateDataset");
-            if (btnCreate) btnCreate.addEventListener("click", async () => {
-                try {
-                    readCloudFields();
-                    // only need URL
-                    if (!syncState.url) { toast("Cloud Sync", "Please enter Sync Server URL first.", "warn"); return; }
-                    const created = await cloudCreateDataset();
-                    // reflect in UI
-                    document.getElementById("datasetId").value = created.datasetId;
-                    document.getElementById("writeKey").value = created.writeKey;
-                    document.getElementById("autoSync").checked = !!syncState.auto;
-                    toast("Dataset created", "Now Push to cloud to upload your data.", "ok");
-                } catch (err) {
-                    toast("Create failed", String(err?.message || err), "err");
-                }
-            });
-
-            const btnPull = document.getElementById("btnPull");
-            if (btnPull) btnPull.addEventListener("click", async () => {
-                try {
-                    readCloudFields();
-                    if (state.ducks.length || state.sets.length) {
-                        const ok = confirm("Pull will overwrite your local data with cloud data. Continue?");
-                        if (!ok) return;
-                    }
-                    await cloudPull({ replaceLocal: true });
-                } catch (err) {
-                    toast("Pull failed", String(err?.message || err), "err");
-                }
-            });
-
-            const btnPush = document.getElementById("btnPush");
-            if (btnPush) btnPush.addEventListener("click", async () => {
-                try {
-                    readCloudFields();
-                    await cloudPush();
-                } catch (err) {
-                    toast("Push failed", String(err?.message || err), "err");
-                }
-            });
-
-            const btnDisconnect = document.getElementById("btnDisconnect");
-            if (btnDisconnect) btnDisconnect.addEventListener("click", () => {
-                syncState.enabled = false;
-                syncState.datasetId = "";
-                syncState.writeKey = "";
-                syncState.revision = null;
-                syncState.auto = false;
-                syncState.dirty = false;
-                saveSyncConfig();
-                updateCloudPills();
-                toast("Cloud Sync", "Disconnected.", "info");
-            });
 
       // Quick add
       $("btnAddDuck").addEventListener("click", () => openDuckModal("create"));
@@ -1281,9 +1057,19 @@ function load(key, fallback) {
       $("fab").addEventListener("click", () => openModal("modalQuick"));
       $("qaAddDuck").addEventListener("click", () => { closeAllModals(); openDuckModal("create"); });
       $("qaExport").addEventListener("click", () => exportJSON());
+      const qaShare = document.getElementById("qaShare");
+      if (qaShare) qaShare.addEventListener("click", () => shareBackup());
+      const qaCopy = document.getElementById("qaCopy");
+      if (qaCopy) qaCopy.addEventListener("click", () => copyBackupJSON());
+
 
       // Export / Import
       $("btnExport").addEventListener("click", exportJSON);
+      const btnShare = document.getElementById("btnShare");
+      if (btnShare) btnShare.addEventListener("click", () => shareBackup());
+      const btnCopy = document.getElementById("btnCopy");
+      if (btnCopy) btnCopy.addEventListener("click", () => copyBackupJSON());
+
       $("fileImport").addEventListener("change", (e) => {
         const f = e.target.files?.[0];
         if (f) importJSONFile(f);
@@ -1307,6 +1093,8 @@ function load(key, fallback) {
         $("setFilter").value = "";
         state.onlyUnassigned = false;
         $("onlyUnassigned").checked = false;
+        state.completionFilter = "all";
+        $("completionFilter").value = "all";
         state.view = "ducks";
         render();
       }
@@ -1381,4 +1169,5 @@ function load(key, fallback) {
     init();
   </script>
 </body>
+
 </html>
