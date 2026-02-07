@@ -152,7 +152,7 @@
             <div>
               <h2 class="text-2xl font-bold text-background-dark dark:text-white">Duck Collection</h2>
               <p id="hintText" class="text-[#8a8760] text-sm mt-1">
-                Create ducks and track their default parts: <b>Head</b>, <b>Wings</b>, <b>Tail</b> ✅
+                Create ducks and track <b>3 phases</b> — each phase has <b>Head</b>, <b>Wings</b>, <b>Tail</b> ✅
               </p>
             </div>
             <div class="text-right">
@@ -220,10 +220,10 @@
 
           <select id="completionFilter"
             class="w-full sm:w-[200px] px-4 py-2 bg-white dark:bg-surface-dark border border-[#e6e5db] dark:border-[#3a392a] rounded-full text-background-dark dark:text-white focus:ring-2 focus:ring-primary text-sm font-bold">
-            <option value="all">All completion</option>
-            <option value="completed">✅ Completed (3/3)</option>
-            <option value="partial">⚡ Partial (2/3)</option>
-            <option value="incomplete">⏳ Incomplete (&lt;2)</option>
+            <option value="all">All status</option>
+            <option value="completed">✅ Completed (all 3 phases merged 3 parts)</option>
+            <option value="partial">⚡ Partial (at least 1 phase merged 2+ parts)</option>
+            <option value="incomplete">⏳ Incomplete (no phase merged 2 parts)</option>
           </select>
         </div>
 
@@ -409,6 +409,7 @@
     </div>
   </div>
 
+
   <script>
     /********************
      * Preset sets (your list)
@@ -439,6 +440,12 @@
       "Diwali Dhamaka"
     ];
 
+    const PHASES = [
+      { key: "p1", label: "Phase 1" },
+      { key: "p2", label: "Phase 2" },
+      { key: "p3", label: "Phase 3" }
+    ];
+
     const PARTS = [
       { key: "head", label: "Head", icon: "face" },
       { key: "wing", label: "Wings", icon: "flutter_dash" },
@@ -448,18 +455,24 @@
     /********************
      * Storage keys
      ********************/
-    const K_SETS = "clusterduck_sets_preset_v1";          // sets list (preset + maybe from import)
-    const K_DUCKS = "clusterduck_ducks_with_parts_v1";    // ducks with parts status
+    const K_SETS = "clusterduck_sets_preset_v1";
+    const K_DUCKS_V1 = "clusterduck_ducks_with_parts_v1";   // legacy (single-phase)
+    const K_DUCKS = "clusterduck_ducks_phases_v1";          // new (3 phases)
     const K_THEME = "clusterduck_theme_v1";
 
     const state = {
       sets: [],   // {id, name, createdAt}
-      ducks: [],  // {id, name, setId, notes, parts:{head,wing,tail}, createdAt, updatedAt}
+      ducks: [],  // {id, name, setId, notes, phases:{p1:{parts, a2, a3}, p2:..., p3:...}, createdAt, updatedAt}
       view: "ducks", // ducks | set
       filterSetId: "",
       onlyUnassigned: false,
-      completionFilter: "all", // all | completed | incomplete
-      search: ""
+      completionFilter: "all", // all | completed | partial | incomplete (based on phase merge flags)
+      search: "",
+      // UI state (kept in-memory): preserve <details open> across rerenders
+      openDetails: {
+        duckQuick: {}, // { [duckId]: true }
+        setCard: {}    // { [setId]: true }
+      }
     };
 
     const $ = (id) => document.getElementById(id);
@@ -536,47 +549,178 @@
       sel.value = selectedId || state.filterSetId || "";
     }
 
-    function normalizeDuckParts(parts) {
+    /********************
+     * Normalizers / Progress
+     ********************/
+    function normalizeParts(parts) {
       const p = parts && typeof parts === "object" ? parts : {};
+      return { head: !!p.head, wing: !!p.wing, tail: !!p.tail };
+    }
+
+    function normalizePhase(phaseObj) {
+      const ph = phaseObj && typeof phaseObj === "object" ? phaseObj : {};
+      // Support legacy field names (a2/a3 or assembled2/assembled3)
+      const a2 = !!(ph.a2 ?? ph.assembled2 ?? ph.merged2 ?? false);
+      const a3 = !!(ph.a3 ?? ph.assembled3 ?? ph.merged3 ?? false);
+      const parts = normalizeParts(ph.parts ?? ph);
+      // If a3 true => force a2 true
+      return { parts, a2: a3 ? true : a2, a3 };
+    }
+
+    function normalizeDuckPhases(phases) {
+      const obj = phases && typeof phases === "object" ? phases : {};
+      const out = {};
+      for (const ph of PHASES) out[ph.key] = normalizePhase(obj[ph.key]);
+      return out;
+    }
+
+    function migrateLegacyDuck(d) {
+      const phases = {
+        p1: { parts: normalizeParts(d.parts), a2: false, a3: false },
+        p2: { parts: normalizeParts({}), a2: false, a3: false },
+        p3: { parts: normalizeParts({}), a2: false, a3: false }
+      };
       return {
-        head: !!p.head,
-        wing: !!p.wing,
-        tail: !!p.tail
+        id: d.id ?? uid(),
+        name: safeText(d.name ?? "Unnamed Duck"),
+        setId: safeText(d.setId ?? ""),
+        notes: safeText(d.notes ?? ""),
+        phases,
+        createdAt: Number(d.createdAt ?? Date.now()),
+        updatedAt: Number(d.updatedAt ?? Date.now()),
       };
     }
 
-    function calcDuckProgress(d) {
-      const p = normalizeDuckParts(d.parts);
+    function migrateIfNeeded() {
+      const newer = load(K_DUCKS, null);
+      if (Array.isArray(newer)) {
+        state.ducks = newer.map(d => ({
+          ...d,
+          phases: normalizeDuckPhases(d.phases),
+        }));
+        return;
+      }
+
+      // Legacy
+      const legacy = load(K_DUCKS_V1, []);
+      if (Array.isArray(legacy) && legacy.length) {
+        state.ducks = legacy.map(migrateLegacyDuck);
+        save(K_DUCKS, state.ducks);
+        return;
+      }
+
+      state.ducks = [];
+      save(K_DUCKS, []);
+    }
+
+    function calcPhaseProgress(d, phaseKey) {
+      const ph = normalizePhase(d?.phases?.[phaseKey]);
+      const p = ph.parts;
       const collected = (p.head ? 1 : 0) + (p.wing ? 1 : 0) + (p.tail ? 1 : 0);
       return { collected, total: 3 };
     }
 
-    function computeGlobalPartsProgress() {
-      const total = state.ducks.length * 3;
+    function calcDuckProgress(d) {
       let collected = 0;
-      for (const d of state.ducks) {
-        const p = normalizeDuckParts(d.parts);
-        collected += (p.head ? 1 : 0) + (p.wing ? 1 : 0) + (p.tail ? 1 : 0);
+      for (const ph of PHASES) {
+        const pp = calcPhaseProgress(d, ph.key);
+        collected += pp.collected;
       }
+      return { collected, total: PHASES.length * 3 };
+    }
+
+    function computeGlobalPartsProgress() {
+      const total = state.ducks.length * (PHASES.length * 3);
+      let collected = 0;
+      for (const d of state.ducks) collected += calcDuckProgress(d).collected;
       return { collected, total };
     }
 
-    function partChipHTML(duck, partKey, label, icon) {
-      const p = normalizeDuckParts(duck.parts);
+    function calcDuckMergeStatus(d) {
+      const phases = PHASES.map(ph => normalizePhase(d?.phases?.[ph.key]));
+      const allMerged3 = phases.every(ph => ph.a3);
+      const anyMerged2Plus = phases.some(ph => ph.a2 || ph.a3);
+      if (allMerged3) return "completed";
+      if (anyMerged2Plus) return "partial";
+      return "incomplete";
+    }
+
+    function enforcePhaseConsistency(ph) {
+      // Ensure a3 implies a2
+      if (ph.a3) ph.a2 = true;
+
+      const { collected } = (() => {
+        const p = normalizeParts(ph.parts);
+        return { collected: (p.head ? 1 : 0) + (p.wing ? 1 : 0) + (p.tail ? 1 : 0) };
+      })();
+
+      // If fewer than 3 parts collected, can't have a3
+      if (collected < 3) ph.a3 = false;
+      // If fewer than 2 parts collected, can't have a2
+      if (collected < 2) ph.a2 = false;
+
+      return ph;
+    }
+
+    /********************
+     * UI helpers (chips)
+     ********************/
+    function partChipHTML(duck, phaseKey, partKey, label, icon) {
+      const ph = normalizePhase(duck?.phases?.[phaseKey]);
+      const p = normalizeParts(ph.parts);
       const on = !!p[partKey];
+
       const base = "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-colors";
       const cls = on
         ? `${base} bg-primary text-background-dark border-primary`
         : `${base} bg-white/70 dark:bg-[#38372b]/70 text-[#8a8760] border-[#e6e5db] dark:border-[#3a392a] hover:border-primary`;
       const symbol = on ? "check" : "add";
       const title = on ? `Unmark: ${label}` : `Mark collected: ${label}`;
+
       return `
-        <button data-action="togglePart" data-id="${duck.id}" data-part="${partKey}" class="${cls}" title="${title}">
+        <button data-action="togglePhasePart" data-id="${duck.id}" data-phase="${phaseKey}" data-part="${partKey}" class="${cls}" title="${title}">
           <span class="material-symbols-outlined text-base">${icon}</span>
           ${label}
           <span class="material-symbols-outlined text-base ml-0.5">${symbol}</span>
         </button>
       `;
+    }
+
+    function mergeChipHTML(duck, phaseKey, level) {
+      const ph = normalizePhase(duck?.phases?.[phaseKey]);
+      const { collected } = calcPhaseProgress(duck, phaseKey);
+
+      const key = level === 3 ? "a3" : "a2";
+      const on = !!ph[key];
+
+      const base = "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-colors";
+      const cls = on
+        ? `${base} bg-primary/30 text-background-dark dark:text-white border-primary`
+        : `${base} bg-white/70 dark:bg-[#38372b]/70 text-[#8a8760] border-[#e6e5db] dark:border-[#3a392a] hover:border-primary`;
+
+      const icon = level === 3 ? "done_all" : "handyman";
+      const label = level === 3 ? "Merged 3" : "Merged 2";
+      const title = level === 3
+        ? (on ? "Unmark merged 3 parts" : "Mark merged 3 parts")
+        : (on ? "Unmark merged 2 parts" : "Mark merged 2 parts");
+
+      // soft guard hint via tooltip
+      const need = level === 3 ? 3 : 2;
+      const guardHint = collected < need ? ` (need ${need}/3 parts)` : "";
+
+      return `
+        <button data-action="togglePhaseMerge" data-id="${duck.id}" data-phase="${phaseKey}" data-level="${level}" class="${cls}" title="${title}${guardHint}">
+          <span class="material-symbols-outlined text-base">${icon}</span>
+          ${label}
+        </button>
+      `;
+    }
+
+    function phaseSummaryBadgeHTML(duck, phaseKey) {
+      const { collected, total } = calcPhaseProgress(duck, phaseKey);
+      const ph = normalizePhase(duck?.phases?.[phaseKey]);
+      const badge = ph.a3 ? "✅3" : (ph.a2 ? "🔧2" : "—");
+      return `<span class="px-2 py-0.5 rounded-md bg-primary/15 text-[10px] font-bold text-background-dark dark:text-white uppercase tracking-wider">${phaseKey.toUpperCase()} ${collected}/${total} · ${badge}</span>`;
     }
 
     function duckCardHTML(d, showSetLine = true) {
@@ -587,35 +731,61 @@
       }
 
       const { collected, total } = calcDuckProgress(d);
+      const pct = total ? Math.round((collected / total) * 100) : 0;
 
-      const chips = PARTS.map(pt => partChipHTML(d, pt.key, pt.label, pt.icon)).join("");
+      const phaseBadges = PHASES.map(ph => phaseSummaryBadgeHTML(d, ph.key)).join(" ");
+
+      const quickToggles = PHASES.map(ph => {
+        const partsChips = PARTS.map(pt => partChipHTML(d, ph.key, pt.key, pt.label, pt.icon)).join("");
+        const mergeChips = mergeChipHTML(d, ph.key, 2) + mergeChipHTML(d, ph.key, 3);
+        return `
+          <div class="bg-white/60 dark:bg-[#38372b]/60 border border-[#e6e5db] dark:border-[#3a392a] rounded-2xl p-3">
+            <div class="flex items-center justify-between gap-2">
+              <div class="text-sm font-bold text-background-dark dark:text-white">${escapeHTML(ph.label)}</div>
+              <div class="text-[10px] font-bold text-[#8a8760]">${calcPhaseProgress(d, ph.key).collected}/3 parts</div>
+            </div>
+            <div class="mt-2 flex flex-wrap gap-2">${partsChips}</div>
+            <div class="mt-2 flex flex-wrap gap-2">${mergeChips}</div>
+          </div>
+        `;
+      }).join("");
 
       return `
         <div class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-[#e6e5db] dark:border-[#3a392a] p-4 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-start justify-between gap-3">
-            <div class="min-w-0">
+            <div class="min-w-0 w-full">
               <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-accent-orange">pets</span>
                 <div class="font-bold text-background-dark dark:text-white truncate">${escapeHTML(d.name)}</div>
                 <span class="ml-1 px-2 py-0.5 rounded-md bg-primary/20 text-[10px] font-bold text-background-dark dark:text-white uppercase tracking-wider">${collected}/${total}</span>
               </div>
+
               ${showSetLine ? `<div class="text-xs text-[#8a8760] mt-1 truncate">${escapeHTML(setName(d.setId))}</div>` : ``}
               ${normalize(d.notes) ? `<div class="text-xs text-[#8a8760] mt-2 line-clamp-2">${escapeHTML(d.notes)}</div>` : ``}
-              
+
               <div class="mt-3">
                 <div class="flex items-center justify-between text-[10px] font-bold text-[#8a8760] mb-1">
-                  <span>Parts</span>
-                  <span>${Math.round((collected / total) * 100)}%</span>
+                  <span>Parts (all phases)</span>
+                  <span>${pct}%</span>
                 </div>
                 <div class="h-2 w-full bg-[#f0f0eb] dark:bg-[#38372b] rounded-full overflow-hidden">
-                  <div class="h-full bg-primary" style="width: ${Math.round((collected / total) * 100)}%;"></div>
+                  <div class="h-full bg-primary" style="width: ${pct}%;"></div>
                 </div>
               </div>
 
               <div class="mt-3 flex flex-wrap gap-2">
-                ${chips}
+                ${phaseBadges}
               </div>
+
+              <details class="mt-3" data-role="duckQuick" data-id="${d.id}" ${state.openDetails?.duckQuick?.[d.id] ? "open" : ""}>
+                <summary class="cursor-pointer select-none text-sm font-bold text-[#8a8760] hover:text-background-dark dark:hover:text-primary transition-colors flex items-center gap-2">
+                  <span class="material-symbols-outlined">tune</span>
+                  Quick phase toggles
+                </summary>
+                <div class="mt-3 space-y-3">${quickToggles}</div>
+              </details>
             </div>
+
             <div class="flex gap-2 shrink-0">
               <button data-action="editDuck" data-id="${d.id}" class="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white/70 dark:bg-[#38372b]/70 border border-[#e6e5db] dark:border-[#3a392a] text-[#8a8760] hover:text-background-dark dark:hover:text-primary font-bold transition-colors" title="Edit duck">
                 <span class="material-symbols-outlined">edit</span>
@@ -627,24 +797,19 @@
     }
 
     function setCardHTML(s) {
-      // list ducks in set (respect search, but we filter inside)
       const ducksInSet = state.ducks
         .filter(d => d.setId === s.id)
         .slice()
         .sort((a, b) => a.name.localeCompare(b.name));
 
-      // apply current filters
       const q = normalize(state.search);
       const visible = ducksInSet.filter(d => {
         if (state.onlyUnassigned) return false;
         if (state.filterSetId && s.id !== state.filterSetId) return false;
 
-        // Completion filter
         if (state.completionFilter !== "all") {
-          const { collected, total } = calcDuckProgress(d);
-          if (state.completionFilter === "completed" && collected !== 3) return false;
-          if (state.completionFilter === "partial" && collected !== 2) return false;
-          if (state.completionFilter === "incomplete" && collected >= 2) return false;
+          const st = calcDuckMergeStatus(d);
+          if (st !== state.completionFilter) return false;
         }
 
         if (!q) return true;
@@ -652,7 +817,6 @@
         return matchesSearch(hay, q);
       });
 
-      // If there's a search: show set only if it matches or has a visible duck
       if (q) {
         const setMatches = matchesSearch(`${s.name}`, q);
         if (!setMatches && visible.length === 0) return "";
@@ -680,7 +844,7 @@
             </div>
           </div>
 
-          <details class="mt-4">
+          <details class="mt-4" data-role="setCard" data-id="${s.id}" ${state.openDetails?.setCard?.[s.id] ? "open" : ""}>
             <summary class="cursor-pointer select-none text-sm font-bold text-[#8a8760] hover:text-background-dark dark:hover:text-primary transition-colors flex items-center gap-2">
               <span class="material-symbols-outlined">expand_more</span>
               View ducks in this set
@@ -706,12 +870,9 @@
           if (state.filterSetId && d.setId !== state.filterSetId) return false;
           if (state.onlyUnassigned && !!d.setId) return false;
 
-          // Completion filter
           if (state.completionFilter !== "all") {
-            const { collected, total } = calcDuckProgress(d);
-            if (state.completionFilter === "completed" && collected !== 3) return false;
-            if (state.completionFilter === "partial" && collected !== 2) return false;
-            if (state.completionFilter === "incomplete" && collected >= 2) return false;
+            const st = calcDuckMergeStatus(d);
+            if (st !== state.completionFilter) return false;
           }
 
           if (q) {
@@ -732,16 +893,8 @@
           if (state.filterSetId && s.id !== state.filterSetId) return false;
           if (state.onlyUnassigned) return false;
 
-          // If completion filter is active, only show sets that have matching ducks
           if (state.completionFilter !== "all") {
-            const ducksInSet = state.ducks.filter(d => {
-              if (d.setId !== s.id) return false;
-              const { collected } = calcDuckProgress(d);
-              if (state.completionFilter === "completed") return collected === 3;
-              if (state.completionFilter === "partial") return collected === 2;
-              if (state.completionFilter === "incomplete") return collected < 2;
-              return true;
-            });
+            const ducksInSet = state.ducks.filter(d => d.setId === s.id && calcDuckMergeStatus(d) === state.completionFilter);
             if (ducksInSet.length === 0) return false;
           }
 
@@ -771,7 +924,31 @@
       }
     }
 
+
+    /********************
+     * Preserve <details> open state across rerenders
+     ********************/
+    function snapshotDetailsState() {
+      // Note: this is transient UI state (not saved to localStorage)
+      const duckQuick = {};
+      document.querySelectorAll('details[data-role="duckQuick"][open]').forEach(el => {
+        const id = el.getAttribute("data-id");
+        if (id) duckQuick[id] = true;
+      });
+
+      const setCard = {};
+      document.querySelectorAll('details[data-role="setCard"][open]').forEach(el => {
+        const id = el.getAttribute("data-id");
+        if (id) setCard[id] = true;
+      });
+
+      if (!state.openDetails) state.openDetails = { duckQuick: {}, setCard: {} };
+      state.openDetails.duckQuick = duckQuick;
+      state.openDetails.setCard = setCard;
+    }
+
     function render() {
+      snapshotDetailsState();
       refreshSetFilterOptions();
       $("completionFilter").value = state.completionFilter;
 
@@ -823,14 +1000,20 @@
     /********************
      * CRUD Ducks
      ********************/
-    function addDuck({ name, setId, notes, parts }) {
+    function newEmptyPhases() {
+      const phases = {};
+      for (const ph of PHASES) phases[ph.key] = { parts: normalizeParts({}), a2: false, a3: false };
+      return phases;
+    }
+
+    function addDuck({ name, setId, notes, phases }) {
       const now = Date.now();
       state.ducks.unshift({
         id: uid(),
         name: name.trim(),
         setId: setId || "",
         notes: (notes || "").trim(),
-        parts: normalizeDuckParts(parts),
+        phases: normalizeDuckPhases(phases ?? newEmptyPhases()),
         createdAt: now,
         updatedAt: now
       });
@@ -841,8 +1024,10 @@
     function updateDuck(id, patch) {
       const idx = state.ducks.findIndex(d => d.id === id);
       if (idx === -1) return;
+
       const next = { ...state.ducks[idx], ...patch, updatedAt: Date.now() };
-      if (patch.parts) next.parts = normalizeDuckParts(patch.parts);
+      if (patch.phases) next.phases = normalizeDuckPhases(patch.phases);
+
       state.ducks[idx] = next;
       save(K_DUCKS, state.ducks);
       render();
@@ -854,12 +1039,53 @@
       render();
     }
 
-    function toggleDuckPart(duckId, partKey) {
+    function toggleDuckPhasePart(duckId, phaseKey, partKey) {
       const d = state.ducks.find(x => x.id === duckId);
       if (!d) return;
-      const p = normalizeDuckParts(d.parts);
-      p[partKey] = !p[partKey];
-      updateDuck(duckId, { parts: p });
+
+      const phases = normalizeDuckPhases(d.phases);
+      const ph = normalizePhase(phases[phaseKey]);
+      const parts = normalizeParts(ph.parts);
+
+      parts[partKey] = !parts[partKey];
+      ph.parts = parts;
+
+      enforcePhaseConsistency(ph);
+      phases[phaseKey] = ph;
+
+      updateDuck(duckId, { phases });
+    }
+
+    function toggleDuckPhaseMerge(duckId, phaseKey, level) {
+      const d = state.ducks.find(x => x.id === duckId);
+      if (!d) return;
+
+      const phases = normalizeDuckPhases(d.phases);
+      const ph = normalizePhase(phases[phaseKey]);
+      const { collected } = calcPhaseProgress(d, phaseKey);
+
+      if (level === 2) {
+        const next = !ph.a2;
+        if (next && collected < 2) {
+          alert("Need at least 2/3 parts collected in this phase to mark 'Merged 2'.");
+          return;
+        }
+        ph.a2 = next;
+        if (!next) ph.a3 = false; // can't have a3 if a2 off
+      } else {
+        const next = !ph.a3;
+        if (next && collected < 3) {
+          alert("Need 3/3 parts collected in this phase to mark 'Merged 3'.");
+          return;
+        }
+        ph.a3 = next;
+        if (next) ph.a2 = true; // a3 implies a2
+      }
+
+      enforcePhaseConsistency(ph);
+      phases[phaseKey] = ph;
+
+      updateDuck(duckId, { phases });
     }
 
     /********************
@@ -879,6 +1105,127 @@
       document.body.style.overflow = "";
     }
 
+    function renderPhaseForm(phases, duckIdForLiveValidation = "") {
+      const container = $("phasePartsContainer");
+      if (!container) return;
+
+      container.innerHTML = PHASES.map(ph => {
+        const phObj = normalizePhase(phases?.[ph.key]);
+        const parts = normalizeParts(phObj.parts);
+
+        const partsChecks = PARTS.map(pt => {
+          const id = `f_${ph.key}_${pt.key}`;
+          return `
+            <label class="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white dark:bg-[#38372b] border border-[#e6e5db] dark:border-[#3a392a] font-bold text-[#8a8760] dark:text-gray-200 cursor-pointer">
+              <input id="${id}" type="checkbox" class="rounded text-primary focus:ring-primary" ${parts[pt.key] ? "checked" : ""} />
+              <span class="material-symbols-outlined text-accent-orange">${pt.icon}</span>
+              ${pt.label}
+            </label>
+          `;
+        }).join("");
+
+        const a2Id = `f_${ph.key}_a2`;
+        const a3Id = `f_${ph.key}_a3`;
+
+        return `
+          <div class="bg-[#f0f0eb]/60 dark:bg-[#38372b]/60 rounded-2xl border border-[#e6e5db] dark:border-[#3a392a] p-4">
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <div class="font-bold text-background-dark dark:text-white">${escapeHTML(ph.label)}</div>
+              <div class="text-xs text-[#8a8760] font-bold">
+                <span id="phaseProg_${ph.key}">0/3</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              ${partsChecks}
+            </div>
+
+            <div class="mt-3 flex flex-wrap gap-2">
+              <label class="flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-[#38372b] border border-[#e6e5db] dark:border-[#3a392a] text-sm font-bold text-[#8a8760] dark:text-gray-200 cursor-pointer">
+                <input id="${a2Id}" type="checkbox" class="rounded text-primary focus:ring-primary" ${phObj.a2 ? "checked" : ""} />
+                <span class="material-symbols-outlined text-[#8a8760]">handyman</span>
+                Merged 2 parts
+              </label>
+              <label class="flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-[#38372b] border border-[#e6e5db] dark:border-[#3a392a] text-sm font-bold text-[#8a8760] dark:text-gray-200 cursor-pointer">
+                <input id="${a3Id}" type="checkbox" class="rounded text-primary focus:ring-primary" ${phObj.a3 ? "checked" : ""} />
+                <span class="material-symbols-outlined text-[#8a8760]">done_all</span>
+                Merged 3 parts
+              </label>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      // After render: bind light validation + update phase progress labels
+      for (const ph of PHASES) {
+        const updatePhaseLabel = () => {
+          const parts = {
+            head: !!$(`f_${ph.key}_head`)?.checked,
+            wing: !!$(`f_${ph.key}_wing`)?.checked,
+            tail: !!$(`f_${ph.key}_tail`)?.checked,
+          };
+          const collected = (parts.head ? 1 : 0) + (parts.wing ? 1 : 0) + (parts.tail ? 1 : 0);
+          const el = $(`phaseProg_${ph.key}`);
+          if (el) el.textContent = `${collected}/3`;
+          return collected;
+        };
+
+        const guardMerge = () => {
+          const collected = updatePhaseLabel();
+          const a2 = $(`f_${ph.key}_a2`);
+          const a3 = $(`f_${ph.key}_a3`);
+
+          if (a3?.checked && collected < 3) {
+            a3.checked = false;
+            alert("Need 3/3 parts to mark 'Merged 3 parts'.");
+          }
+          if (a2?.checked && collected < 2) {
+            a2.checked = false;
+            if (a3) a3.checked = false;
+            alert("Need at least 2/3 parts to mark 'Merged 2 parts'.");
+          }
+          if (a3?.checked && a2) a2.checked = true;
+        };
+
+        // Bind changes
+        ["head", "wing", "tail"].forEach(pk => {
+          const el = $(`f_${ph.key}_${pk}`);
+          if (el) el.addEventListener("change", guardMerge);
+        });
+
+        const a2 = $(`f_${ph.key}_a2`);
+        const a3 = $(`f_${ph.key}_a3`);
+        if (a2) a2.addEventListener("change", guardMerge);
+        if (a3) a3.addEventListener("change", guardMerge);
+
+        // initial
+        updatePhaseLabel();
+        guardMerge();
+      }
+    }
+
+    function collectPhasesFromForm() {
+      const phases = {};
+      for (const ph of PHASES) {
+        const parts = {
+          head: !!$(`f_${ph.key}_head`)?.checked,
+          wing: !!$(`f_${ph.key}_wing`)?.checked,
+          tail: !!$(`f_${ph.key}_tail`)?.checked,
+        };
+        let a2 = !!$(`f_${ph.key}_a2`)?.checked;
+        let a3 = !!$(`f_${ph.key}_a3`)?.checked;
+
+        // Enforce constraints at submit (no surprises)
+        const collected = (parts.head ? 1 : 0) + (parts.wing ? 1 : 0) + (parts.tail ? 1 : 0);
+        if (a3 && collected < 3) a3 = false;
+        if (a2 && collected < 2) a2 = false;
+        if (a3) a2 = true;
+
+        phases[ph.key] = enforcePhaseConsistency({ parts, a2, a3 });
+      }
+      return phases;
+    }
+
     function openDuckModal(mode, duckObj = null, presetSetId = "") {
       $("duckModalTitle").textContent = mode === "edit" ? "Edit Duck" : "Create Duck";
       $("duckId").value = duckObj?.id ?? "";
@@ -887,10 +1234,9 @@
 
       refreshDuckModalSetOptions(duckObj?.setId ?? presetSetId);
 
-      const parts = normalizeDuckParts(duckObj?.parts);
-      $("partHead").checked = parts.head;
-      $("partWing").checked = parts.wing;
-      $("partTail").checked = parts.tail;
+      // Render phases form dynamically
+      const phases = duckObj?.phases ? normalizeDuckPhases(duckObj.phases) : newEmptyPhases();
+      renderPhaseForm(phases);
 
       $("btnDeleteDuck").classList.toggle("hidden", mode !== "edit");
       openModal("modalDuck");
@@ -902,7 +1248,7 @@
      ********************/
     function exportJSON() {
       const payload = {
-        version: 2,
+        version: 3,
         exportedAt: new Date().toISOString(),
         sets: state.sets,
         ducks: state.ducks
@@ -911,18 +1257,16 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `clusterduck-ducks-parts-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `clusterduck-ducks-phases-${new Date().toISOString().slice(0, 10)}.json`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
     }
 
-
-
     async function shareBackup() {
       const payload = {
-        version: 2,
+        version: 3,
         exportedAt: new Date().toISOString(),
         sets: state.sets,
         ducks: state.ducks
@@ -931,7 +1275,6 @@
       const filename = `clusterduck-backup-${new Date().toISOString().slice(0, 10)}.json`;
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
 
-      // Prefer native Share sheet (mobile)
       try {
         const file = new File([blob], filename, { type: "application/json" });
         if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
@@ -940,7 +1283,6 @@
         }
       } catch (_) { }
 
-      // Fallback: download
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -953,7 +1295,7 @@
 
     async function copyBackupJSON() {
       const payload = {
-        version: 2,
+        version: 3,
         exportedAt: new Date().toISOString(),
         sets: state.sets,
         ducks: state.ducks
@@ -966,6 +1308,7 @@
         alert("Copy failed. Your browser may block clipboard access. Try Export/Share instead.");
       }
     }
+
     function importJSONText(text) {
       try {
         const data = JSON.parse(text);
@@ -976,23 +1319,38 @@
           : [];
 
         const ducks = Array.isArray(data.ducks)
-          ? data.ducks.map(d => ({
-            id: d.id ?? uid(),
-            name: safeText(d.name ?? "Unnamed Duck"),
-            setId: safeText(d.setId ?? ""),
-            notes: safeText(d.notes ?? ""),
-            parts: normalizeDuckParts(d.parts),
-            createdAt: Number(d.createdAt ?? Date.now()),
-            updatedAt: Number(d.updatedAt ?? Date.now()),
-          }))
+          ? data.ducks.map(d => {
+            // New format
+            if (d.phases) {
+              return {
+                id: d.id ?? uid(),
+                name: safeText(d.name ?? "Unnamed Duck"),
+                setId: safeText(d.setId ?? ""),
+                notes: safeText(d.notes ?? ""),
+                phases: normalizeDuckPhases(d.phases),
+                createdAt: Number(d.createdAt ?? Date.now()),
+                updatedAt: Number(d.updatedAt ?? Date.now()),
+              };
+            }
+            // Legacy import
+            if (d.parts) return migrateLegacyDuck(d);
+
+            // Empty-ish duck
+            return {
+              id: d.id ?? uid(),
+              name: safeText(d.name ?? "Unnamed Duck"),
+              setId: safeText(d.setId ?? ""),
+              notes: safeText(d.notes ?? ""),
+              phases: newEmptyPhases(),
+              createdAt: Number(d.createdAt ?? Date.now()),
+              updatedAt: Number(d.updatedAt ?? Date.now()),
+            };
+          })
           : [];
 
-        // If imported sets empty, keep presets
         if (sets.length) {
           state.sets = sets;
           save(K_SETS, state.sets);
-        } else {
-          // keep existing sets
         }
 
         state.ducks = ducks;
@@ -1028,7 +1386,7 @@
       ensurePresetSets();
 
       state.sets = load(K_SETS, []);
-      state.ducks = load(K_DUCKS, []).map(d => ({ ...d, parts: normalizeDuckParts(d.parts) }));
+      migrateIfNeeded();
 
       refreshSetFilterOptions();
       render();
@@ -1062,7 +1420,6 @@
       const qaCopy = document.getElementById("qaCopy");
       if (qaCopy) qaCopy.addEventListener("click", () => copyBackupJSON());
 
-
       // Export / Import
       $("btnExport").addEventListener("click", exportJSON);
       const btnShare = document.getElementById("btnShare");
@@ -1085,6 +1442,7 @@
       function doReset() {
         if (!confirm("Reset all duck data? (Preset sets will be kept)")) return;
         localStorage.removeItem(K_DUCKS);
+        localStorage.removeItem(K_DUCKS_V1);
         state.ducks = [];
         save(K_DUCKS, []);
         state.search = "";
@@ -1112,21 +1470,17 @@
       // Duck form submit
       $("duckForm").addEventListener("submit", (e) => {
         e.preventDefault();
+
         const id = $("duckId").value;
         const name = $("duckName").value.trim();
         const setId = $("duckSetId").value;
         const notes = $("duckNotes").value.trim();
-
         if (!name) return;
 
-        const parts = {
-          head: $("partHead").checked,
-          wing: $("partWing").checked,
-          tail: $("partTail").checked
-        };
+        const phases = collectPhasesFromForm();
 
-        if (id) updateDuck(id, { name, setId, notes, parts });
-        else addDuck({ name, setId, notes, parts });
+        if (id) updateDuck(id, { name, setId, notes, phases });
+        else addDuck({ name, setId, notes, phases });
 
         closeAllModals();
       });
@@ -1155,9 +1509,16 @@
           openDuckModal("edit", d);
         }
 
-        if (action === "togglePart") {
+        if (action === "togglePhasePart") {
+          const phase = btn.getAttribute("data-phase");
           const part = btn.getAttribute("data-part");
-          toggleDuckPart(id, part);
+          toggleDuckPhasePart(id, phase, part);
+        }
+
+        if (action === "togglePhaseMerge") {
+          const phase = btn.getAttribute("data-phase");
+          const level = Number(btn.getAttribute("data-level") || "2");
+          toggleDuckPhaseMerge(id, phase, level);
         }
 
         if (action === "addDuckToSet") {
