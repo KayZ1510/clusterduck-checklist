@@ -218,12 +218,21 @@
             Only unassigned ducks
           </label>
 
-          <select id="completionFilter"
-            class="w-full sm:w-[200px] px-4 py-2 bg-white dark:bg-surface-dark border border-[#e6e5db] dark:border-[#3a392a] rounded-full text-background-dark dark:text-white focus:ring-2 focus:ring-primary text-sm font-bold">
-            <option value="all">All status</option>
-            <option value="completed">✅ Completed (all 3 phases merged 3 parts)</option>
-            <option value="partial">⚡ Partial (at least 1 phase merged 2+ parts)</option>
-            <option value="incomplete">⏳ Incomplete (no phase merged 2 parts)</option>
+          <select id="phaseFilter"
+            class="w-full sm:w-[170px] px-4 py-2 bg-white dark:bg-surface-dark border border-[#e6e5db] dark:border-[#3a392a] rounded-full text-background-dark dark:text-white focus:ring-2 focus:ring-primary text-sm font-bold">
+            <option value="">All phases</option>
+            <option value="p1">Phase 1</option>
+            <option value="p2">Phase 2</option>
+            <option value="p3">Phase 3</option>
+          </select>
+
+          <select id="phaseStatusFilter"
+            class="w-full sm:w-[240px] px-4 py-2 bg-white dark:bg-surface-dark border border-[#e6e5db] dark:border-[#3a392a] rounded-full text-background-dark dark:text-white focus:ring-2 focus:ring-primary text-sm font-bold">
+            <option value="all">All phase statuses</option>
+            <option value="merged3">✅ Đã merge 3</option>
+            <option value="merged2">🔧 Đã merge 2</option>
+            <option value="has3_unmerged">📦 Có 3 nhưng chưa merge</option>
+            <option value="has2_unmerged">📦 Có 2 nhưng chưa merge</option>
           </select>
         </div>
 
@@ -466,7 +475,8 @@
       view: "ducks", // ducks | set
       filterSetId: "",
       onlyUnassigned: false,
-      completionFilter: "all", // all | completed | partial | incomplete (based on phase merge flags)
+      phaseKeyFilter: "", // "" (all phases) | p1 | p2 | p3
+      phaseStatusFilter: "all", // all | merged3 | merged2 | has3_unmerged | has2_unmerged
       search: "",
       // UI state (kept in-memory): preserve <details open> across rerenders
       openDetails: {
@@ -645,6 +655,34 @@
       return "incomplete";
     }
 
+
+    /********************
+     * Phase filter helpers
+     ********************/
+    function phaseMatchesStatus(d, phaseKey, status) {
+      if (status === "all") return true;
+
+      const ph = normalizePhase(d?.phases?.[phaseKey]);
+      const { collected } = calcPhaseProgress(d, phaseKey);
+
+      if (status === "merged3") return !!ph.a3;
+      if (status === "merged2") return !!ph.a2 && !ph.a3;
+      if (status === "has3_unmerged") return collected === 3 && !ph.a2 && !ph.a3;
+      if (status === "has2_unmerged") return collected === 2 && !ph.a2 && !ph.a3;
+      return true;
+    }
+
+    function matchesPhaseFilter(d) {
+      const status = state.phaseStatusFilter;
+      const phaseKey = state.phaseKeyFilter;
+
+      // No active status filter -> don't filter at all
+      if (status === "all") return true;
+
+      const keys = phaseKey ? [phaseKey] : PHASES.map(p => p.key);
+      return keys.some(k => phaseMatchesStatus(d, k, status));
+    }
+
     function enforcePhaseConsistency(ph) {
       // Ensure a3 implies a2
       if (ph.a3) ph.a2 = true;
@@ -807,10 +845,7 @@
         if (state.onlyUnassigned) return false;
         if (state.filterSetId && s.id !== state.filterSetId) return false;
 
-        if (state.completionFilter !== "all") {
-          const st = calcDuckMergeStatus(d);
-          if (st !== state.completionFilter) return false;
-        }
+        if (!matchesPhaseFilter(d)) return false;
 
         if (!q) return true;
         const hay = `${d.name} ${d.notes} ${s.name}`;
@@ -870,10 +905,7 @@
           if (state.filterSetId && d.setId !== state.filterSetId) return false;
           if (state.onlyUnassigned && !!d.setId) return false;
 
-          if (state.completionFilter !== "all") {
-            const st = calcDuckMergeStatus(d);
-            if (st !== state.completionFilter) return false;
-          }
+          if (!matchesPhaseFilter(d)) return false;
 
           if (q) {
             const hay = `${d.name} ${d.notes} ${setName(d.setId)}`;
@@ -893,8 +925,8 @@
           if (state.filterSetId && s.id !== state.filterSetId) return false;
           if (state.onlyUnassigned) return false;
 
-          if (state.completionFilter !== "all") {
-            const ducksInSet = state.ducks.filter(d => d.setId === s.id && calcDuckMergeStatus(d) === state.completionFilter);
+          if (state.phaseStatusFilter !== "all") {
+            const ducksInSet = state.ducks.filter(d => d.setId === s.id && matchesPhaseFilter(d));
             if (ducksInSet.length === 0) return false;
           }
 
@@ -950,7 +982,8 @@
     function render() {
       snapshotDetailsState();
       refreshSetFilterOptions();
-      $("completionFilter").value = state.completionFilter;
+      $("phaseFilter").value = state.phaseKeyFilter;
+      $("phaseStatusFilter").value = state.phaseStatusFilter;
 
       $("setCountBig").textContent = String(state.sets.length);
       $("duckCountBig").textContent = String(state.ducks.length);
@@ -1363,8 +1396,10 @@
         $("setFilter").value = "";
         state.onlyUnassigned = false;
         $("onlyUnassigned").checked = false;
-        state.completionFilter = "all";
-        $("completionFilter").value = "all";
+        state.phaseKeyFilter = "";
+        $("phaseFilter").value = "";
+        state.phaseStatusFilter = "all";
+        $("phaseStatusFilter").value = "all";
 
         render();
       } catch {
@@ -1398,7 +1433,8 @@
       // Filters
       $("setFilter").addEventListener("change", (e) => { state.filterSetId = e.target.value; render(); });
       $("onlyUnassigned").addEventListener("change", (e) => { state.onlyUnassigned = e.target.checked; render(); });
-      $("completionFilter").addEventListener("change", (e) => { state.completionFilter = e.target.value; render(); });
+      $("phaseFilter").addEventListener("change", (e) => { state.phaseKeyFilter = e.target.value; render(); });
+      $("phaseStatusFilter").addEventListener("change", (e) => { state.phaseStatusFilter = e.target.value; render(); });
 
       // Search
       $("searchInput").addEventListener("input", (e) => { state.search = e.target.value; render(); });
@@ -1451,8 +1487,10 @@
         $("setFilter").value = "";
         state.onlyUnassigned = false;
         $("onlyUnassigned").checked = false;
-        state.completionFilter = "all";
-        $("completionFilter").value = "all";
+        state.phaseKeyFilter = "";
+        $("phaseFilter").value = "";
+        state.phaseStatusFilter = "all";
+        $("phaseStatusFilter").value = "all";
         state.view = "ducks";
         render();
       }
@@ -1530,5 +1568,6 @@
     init();
   </script>
 </body>
+
 
 </html>
